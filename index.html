@@ -1,0 +1,1411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f5e57">
+<title>RESET Site Assessment</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#f4f6f5; --surface:#fff; --surface2:#eef1ef; --text:#18201e; --muted:#5d6966; --border:#d9dfdc;
+  --accent:#0f5e57; --accent-ink:#fff; --accent-soft:#dcefeb;
+  --good:#15803d; --good-soft:#dcf3e3; --mid:#b45309; --mid-soft:#fdf0d9; --bad:#b91c1c; --bad-soft:#fde4e4;
+  --none:#64748b; --none-soft:#e8ecf1;
+  --s1:#d64545; --s2:#e8833a; --s3:#d6a821; --s4:#7cb342; --s5:#2e8b57;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 2px 10px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101514; --surface:#18201e; --surface2:#202a28; --text:#e6ecea; --muted:#9aa8a4; --border:#2d3a37;
+    --accent:#3fb3a5; --accent-ink:#06201c; --accent-soft:#183a35;
+    --good:#4ade80; --good-soft:#163524; --mid:#fbbf24; --mid-soft:#3a2d12; --bad:#f87171; --bad-soft:#3d1a1a;
+    --none:#94a3b8; --none-soft:#252f37; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101514; --surface:#18201e; --surface2:#202a28; --text:#e6ecea; --muted:#9aa8a4; --border:#2d3a37;
+  --accent:#3fb3a5; --accent-ink:#06201c; --accent-soft:#183a35;
+  --good:#4ade80; --good-soft:#163524; --mid:#fbbf24; --mid-soft:#3a2d12; --bad:#f87171; --bad-soft:#3d1a1a;
+  --none:#94a3b8; --none-soft:#252f37; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Tahoma,sans-serif;background:var(--bg);color:var(--text);padding-bottom:calc(70px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+html[dir="rtl"] body{font-family:"Segoe UI",Tahoma,"Noto Sans Arabic","Geeza Pro",system-ui,sans-serif;line-height:1.6}
+header.top{position:sticky;top:0;z-index:40;background:var(--accent);color:var(--accent-ink);padding:10px 16px;display:flex;align-items:center;gap:10px;min-height:52px}
+header.top h1{font-size:16px;margin:0;font-weight:650;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top .sub{font-size:12px;opacity:.85;font-weight:500}
+.langbtn{appearance:none;border:1px solid rgba(255,255,255,.55);background:transparent;color:inherit;border-radius:8px;padding:4px 10px;font:inherit;font-size:13px;font-weight:650;cursor:pointer;min-height:32px}
+main{max-width:1000px;margin:0 auto;padding:16px}
+main.full{max-width:none;padding:0}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:center;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs a{flex:1;max-width:150px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 7px;color:var(--muted);text-decoration:none;font-size:11.5px;font-weight:550;text-align:center}
+nav.tabs a.on{color:var(--accent)}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+html[dir="rtl"] .flip{transform:scaleX(-1)}
+h2{font-size:18px;margin:4px 0 12px}
+h3{font-size:15px;margin:18px 0 8px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.btn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;min-height:40px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:5px 10px;min-height:32px;font-size:13px}
+.btn svg.i{width:18px;height:18px}
+.icon-btn{appearance:none;border:0;background:transparent;color:inherit;padding:6px;border-radius:8px;cursor:pointer;display:inline-flex}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow)}
+.pad{padding:14px 16px}
+input,select,textarea{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:9px 10px;width:100%;min-height:42px}
+textarea{min-height:64px;resize:vertical}
+input[type="url"],input[data-k="lat"],input[data-k="lng"]{direction:ltr}
+html[dir="rtl"] input[type="url"]{text-align:right}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+label.f{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px}
+.fld{margin-bottom:12px;min-width:0}
+.fld .hint{font-size:12px;color:var(--muted);margin-top:3px}
+.grid2{display:grid;grid-template-columns:1fr;gap:0 14px}
+@media (min-width:640px){.grid2{grid-template-columns:1fr 1fr}.fld.wide{grid-column:1/-1}}
+.unitwrap{position:relative}
+.unitwrap input{padding-inline-end:70px}
+.unitwrap .u{position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:650;padding:2px 9px;border-radius:999px;background:var(--none-soft);color:var(--none);white-space:nowrap}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.mid{background:var(--mid-soft);color:var(--mid)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.acc{background:var(--accent-soft);color:var(--accent)}
+/* site list */
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar input,.toolbar select{flex:1;min-width:140px}
+.sites{display:grid;gap:10px}
+@media (min-width:760px){.sites{grid-template-columns:1fr 1fr}}
+.site-card{display:flex;gap:12px;align-items:center;padding:12px 14px;text-align:start;width:100%;cursor:pointer;font:inherit;color:inherit}
+.site-card:hover{border-color:var(--accent)}
+.badge{flex:none;width:58px;height:54px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface2);font-weight:750;font-size:18px;line-height:1}
+.badge small{font-size:10px;font-weight:600;color:var(--muted);margin-top:3px}
+.sc-body{flex:1;min-width:0}
+.sc-name{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-sub{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.bar{height:5px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:var(--accent)}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat{padding:10px 12px}
+.stat b{display:block;font-size:22px;line-height:1.1}
+.stat span{font-size:12px;color:var(--muted)}
+@media (max-width:480px){.stat b{font-size:18px}.stat{padding:8px}}
+/* editor */
+.ed-head{display:flex;align-items:center;gap:8px;margin:-4px 0 10px}
+.ed-title{flex:1;min-width:0}
+.ed-title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ed-title span{font-size:13px;color:var(--muted)}
+.statusbar{position:sticky;top:52px;z-index:30;background:var(--bg);padding:8px 0 10px;margin-bottom:6px;border-bottom:1px solid var(--border)}
+.statusbar .row{gap:6px}
+.segtabs{display:flex;background:var(--surface2);border-radius:11px;padding:3px;margin-bottom:12px}
+.segtabs button{flex:1;border:0;background:transparent;font:inherit;font-weight:650;color:var(--muted);padding:9px;border-radius:9px;cursor:pointer}
+.segtabs button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+details.sec{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+details.sec>summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:10px;font-weight:650}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary .letter{flex:none;width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+details.sec>summary .t{flex:1;min-width:0}
+details.sec>summary .cnt{font-size:12px;color:var(--muted);font-weight:600}
+details.sec>summary .cnt.done{color:var(--good)}
+details.sec>summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:-4px 0 0;margin-inline-end:4px;transition:transform .15s}
+details.sec[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+.sec-body{padding:2px 16px 14px}
+.note{background:var(--accent-soft);color:var(--text);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.gps{background:var(--surface2);border-radius:12px;padding:12px;margin-bottom:12px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{padding:8px 8px;border-bottom:1px solid var(--border);text-align:start;vertical-align:top}
+table.t th{font-size:12px;color:var(--muted);font-weight:650;white-space:nowrap}
+table.t td.n,table.t th.n{text-align:end;font-variant-numeric:tabular-nums}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.anchor-row{display:grid;grid-template-columns:1fr 120px 36px;gap:8px;margin-bottom:8px;align-items:center}
+.ev-row{display:grid;grid-template-columns:1fr;gap:6px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ev-row:last-child{border-bottom:0}
+@media (min-width:640px){.ev-row{grid-template-columns:1.3fr 150px 1fr;align-items:center}}
+.ev-row .ev-t{font-weight:600;font-size:14px}
+.ev-row .ev-d{font-size:12px;color:var(--muted)}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.ph{background:var(--surface2);border-radius:10px;overflow:hidden;position:relative}
+.ph img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;cursor:zoom-in}
+.ph .ph-b{padding:6px;display:grid;gap:5px}
+.ph input,.ph select{min-height:34px;padding:5px 7px;font-size:13px}
+.ev-att{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.ev-thumb{width:104px;position:relative}
+.ev-thumb img{width:104px;height:78px;object-fit:cover;border-radius:8px;display:block;cursor:zoom-in;background:var(--surface2)}
+.ev-thumb input{min-height:30px;padding:3px 6px;font-size:12px;margin-top:4px}
+.ev-link{display:grid;grid-template-columns:1fr auto 36px;gap:6px;align-items:center;width:100%}
+.ev-link a.disabled{pointer-events:none;opacity:.45}
+.ev-btns{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.ev-thumb .x,.ph .x{position:absolute;top:5px;inset-inline-end:5px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:99px;width:28px;height:28px;cursor:pointer;font-size:16px;line-height:1}
+.filebtn{position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.rv-row{display:grid;grid-template-columns:1fr;gap:6px;padding:12px 0;border-bottom:1px solid var(--border)}
+.rv-row:last-child{border-bottom:0}
+@media (min-width:640px){.rv-row{grid-template-columns:1.2fr 170px 1.3fr;align-items:start}}
+.rv-row .ev{font-size:12px;color:var(--muted);margin-top:3px}
+.result-sel.Eligible{border-color:var(--good);color:var(--good);font-weight:650}
+.result-sel.Ineligible{border-color:var(--bad);color:var(--bad);font-weight:650}
+.result-sel.Pending{border-color:var(--mid);color:var(--mid);font-weight:650}
+.score-row{display:grid;grid-template-columns:1fr 160px;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);align-items:center}
+.score-row:last-child{border-bottom:0}
+@media (max-width:520px){.score-row{grid-template-columns:1fr;gap:6px}.score-row>div[style*="text-align"]{text-align:start!important}}
+.sugg{font-size:12px;color:var(--muted);margin-top:2px}
+.bigscore{display:flex;align-items:baseline;gap:6px}
+.bigscore b{font-size:32px;line-height:1}
+.dot{display:inline-block;width:10px;height:10px;border-radius:99px;flex:none}
+.sc{display:inline-flex;min-width:26px;justify-content:center;padding:2px 6px;border-radius:6px;font-weight:700;font-size:13px;color:#fff}
+.sc.s0{background:var(--none)}.sc.s1{background:var(--s1)}.sc.s2{background:var(--s2)}.sc.s3{background:var(--s3)}.sc.s4{background:var(--s4)}.sc.s5{background:var(--s5)}
+.sc.na{background:transparent;color:var(--muted)}
+#map{height:calc(100dvh - 52px - 64px - env(safe-area-inset-bottom));width:100%;background:var(--surface2)}
+.map-msg{padding:40px 16px;text-align:center;color:var(--muted)}
+.legend{background:var(--surface);color:var(--text);padding:8px 10px;border-radius:10px;font-size:12px;line-height:1.7;box-shadow:var(--shadow);border:1px solid var(--border)}
+.leaflet-popup-content{font:14px/1.4 system-ui,Tahoma,sans-serif}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#1d2725;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:999;box-shadow:0 4px 18px rgba(0,0,0,.25);max-width:calc(100% - 32px)}
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+#lightbox img{max-width:100%;max-height:100%;border-radius:6px}
+.settings-grid{display:grid;gap:12px}
+@media (min-width:760px){.settings-grid{grid-template-columns:1fr 1fr}}
+.wrow{display:grid;grid-template-columns:1fr 92px 64px;gap:8px;align-items:center;margin-bottom:8px}
+.wrow .pct{font-size:13px;color:var(--muted);text-align:end;font-variant-numeric:tabular-nums}
+.wrow .unitwrap input{padding-inline-end:28px;text-align:end}
+.wrow.head{font-size:12px;color:var(--muted);font-weight:650;margin-bottom:4px}
+.wrow.head span:not(:first-child){text-align:end}
+.bands{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+#report{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;color:#000;padding:0;font-size:10.5pt}
+  body>*:not(#report){display:none!important}
+  #report{display:block!important}
+}
+/* report */
+#report{color:#111;font:10.5pt/1.45 "Segoe UI",Tahoma,Arial,sans-serif}
+#report h1{font-size:20pt;margin:0 0 4px;color:#0f5e57}
+#report h2{font-size:13pt;margin:18px 0 8px;color:#0f5e57;border-bottom:2px solid #0f5e57;padding-bottom:3px}
+#report h3{font-size:11pt;margin:12px 0 6px;color:#0f5e57}
+#report table{width:100%;border-collapse:collapse;margin-bottom:8px;page-break-inside:auto}
+#report tr{page-break-inside:avoid}
+#report th,#report td{border:1px solid #bbb;padding:4px 6px;text-align:start;vertical-align:top;font-size:9.5pt}
+#report th{background:#e8f1ef}
+#report td.k{width:38%;background:#f6f8f7;font-weight:600}
+#report .pb{page-break-before:always}
+#report .kicker{font-size:9pt;letter-spacing:.08em;text-transform:uppercase;color:#555}
+#report .rp-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#report .rp-photos figure{margin:0;page-break-inside:avoid}
+#report .rp-photos img{width:100%;max-height:70mm;object-fit:cover;border:1px solid #ccc}
+#report figcaption{font-size:8.5pt;color:#444}
+#report .box{border:1px solid #0f5e57;background:#eef6f4;padding:8px 10px;margin:8px 0}
+#report a{word-break:break-all}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  <h1 id="appTitle">RESET Site Assessment</h1>
+  <span class="sub" id="saveState"></span>
+  <button class="langbtn" id="langBtn" data-action="lang" lang="ar">العربية</button>
+</header>
+<main id="main"></main>
+<nav class="tabs" id="tabs">
+  <a href="#sites" data-tab="sites"><svg class="i" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span data-i18n="Sites">Sites</span></a>
+  <a href="#map" data-tab="map"><svg class="i" viewBox="0 0 24 24"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4zM9 4v13.5M15 6.5V20"/></svg><span data-i18n="Map">Map</span></a>
+  <a href="#register" data-tab="register"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/></svg><span data-i18n="Register">Register</span></a>
+  <a href="#settings" data-tab="settings"><svg class="i" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span data-i18n="Method & data">Method &amp; data</span></a>
+</nav>
+<div id="lightbox"><img alt=""></div>
+<div id="report"></div>
+
+<script>
+'use strict';
+/* ================= Arabic dictionary (keys are the English UI text) ================= */
+const AR={
+"RESET Site Assessment":"تقييم مواقع RESET",
+"RESET Mini-Grid Site Screening":"فحص مواقع الشبكات المصغّرة – RESET",
+"Yemen":"اليمن",
+"Sites":"المواقع","Map":"الخريطة","Register":"السجل","Method & data":"المنهجية والبيانات",
+"Saving…":"جارٍ الحفظ…","Saved":"تم الحفظ","Not saved (no storage)":"لم يُحفظ (لا توجد مساحة تخزين)","Save failed":"فشل الحفظ","Could not save: {0}":"تعذّر الحفظ: {0}",
+"Language":"اللغة",
+/* criteria */
+"Household / village dispersion":"تشتّت المساكن / القرية",
+"Household electricity payment":"مدفوعات الكهرباء للأسر",
+"Commercial electricity payment":"مدفوعات الكهرباء التجارية",
+"Rehabilitable infrastructure":"البنية التحتية القابلة لإعادة التأهيل",
+"Annex {0}":"الملحق {0}",
+/* eligibility */
+"Security and access":"الأمن وإمكانية الوصول",
+"Reasonably secure location in IRG-controlled territory, away from active frontlines, with safe year-round construction and O&M access.":"موقع آمن بدرجة معقولة ضمن مناطق سيطرة الحكومة المعترف بها دولياً، بعيداً عن خطوط المواجهة النشطة، مع وصول آمن طوال العام لأعمال الإنشاء والتشغيل والصيانة.",
+"IRG-controlled":"ضمن مناطق سيطرة الحكومة","Distance to frontline":"المسافة إلى خط المواجهة","Incidents (2 yrs)":"الحوادث (سنتان)","Route":"الطريق","Passability":"إمكانية العبور",
+"No conflicting public electrification":"عدم وجود كهربة عامة متعارضة",
+"No confirmed Government plan for grid extension or other publicly financed supply that conflicts with the mini-grid, plus confirmation / no-objection from the competent authority.":"لا توجد خطة حكومية مؤكدة لتمديد الشبكة أو أي إمداد ممول من القطاع العام يتعارض مع الشبكة المصغّرة، مع تأكيد / عدم ممانعة من الجهة المختصة.",
+"Grid extension planned":"تمديد الشبكة مخطط","Other public electrification":"كهربة عامة أخرى","Govt confirmation":"التأكيد الحكومي","Grid distance":"المسافة إلى الشبكة",
+"Land available and undisputed":"توفر الأرض وخلوها من النزاعات",
+"Suitable land near the load centre with documented ownership or use rights and no unresolved land or tribal dispute.":"أرض مناسبة قرب مركز الأحمال بملكية أو حق انتفاع موثّق، دون نزاع قائم على الأرض أو نزاع قبلي.",
+"Ownership":"الملكية","Documentation":"التوثيق","No-dispute confirmation":"تأكيد عدم النزاع","Distance to load centre":"المسافة إلى مركز الأحمال",
+"Minimum viable demand":"الحد الأدنى للطلب المجدي",
+"Sufficient households, businesses and expected load to justify a mini-grid rather than solar home systems. (Quantitative threshold under methodological confirmation.)":"عدد كافٍ من الأسر والأنشطة التجارية والأحمال المتوقعة لتبرير شبكة مصغّرة بدلاً من الأنظمة الشمسية المنزلية. (الحد الكمّي قيد التأكيد المنهجي.)",
+"Households":"الأسر","Businesses":"الأنشطة التجارية","Peak demand":"ذروة الطلب","Anchor load":"الحمل الرئيسي",
+"Community readiness":"جاهزية المجتمع",
+"Active local leadership, documented community endorsement, and no unresolved disputes likely to disrupt construction or payment.":"قيادة محلية فاعلة، وتأييد مجتمعي موثّق، وعدم وجود نزاعات قائمة قد تعطّل الإنشاء أو السداد.",
+"Local council":"المجلس المحلي","Counterpart":"الشخص المقابل","Endorsement":"التأييد","Disputes":"النزاعات","recorded":"مسجّلة",
+/* evidence */
+"Site and location evidence":"أدلة الموقع والمكان",
+"GPS and photos: settlement/service area, generation & storage location, access route, existing electricity infrastructure.":"إحداثيات GPS وصور: منطقة التجمع السكاني/الخدمة، موقع التوليد والتخزين، طريق الوصول، البنية الكهربائية القائمة.",
+"Government & electrification planning":"التخطيط الحكومي والكهربة",
+"Govt / GARE / PEC confirmation or correspondence on existing or planned grid extension; no-objection where required.":"تأكيد أو مراسلات من الحكومة / GARE / PEC بشأن تمديد الشبكة القائم أو المخطط؛ وعدم الممانعة عند الاقتضاء.",
+"Land documentation":"وثائق الأرض",
+"Ownership or use-right documents; local authority / tribal confirmation on land status or disputes.":"وثائق الملكية أو حق الانتفاع؛ تأكيد السلطة المحلية / القبلية بشأن وضع الأرض أو النزاعات.",
+"Community consultation record":"سجل المشاورات المجتمعية",
+"Stakeholders consulted, principal issues, concerns or agreements.":"الأطراف المعنية التي تمت استشارتها، والقضايا أو المخاوف أو الاتفاقات الرئيسية.",
+"Security & accessibility evidence":"أدلة الأمن وإمكانية الوصول",
+"Source or reference for material security / access conditions (subject to information-handling rules).":"مصدر أو مرجع للظروف الأمنية أو ظروف الوصول الجوهرية (وفق قواعد التعامل مع المعلومات).",
+"Environmental & social evidence":"الأدلة البيئية والاجتماعية",
+"Photos or records of E&S issues: land use, receptors, waterways/flooding, displacement, cultural/religious sites.":"صور أو سجلات للقضايا البيئية والاجتماعية: استخدام الأرض، المستقبِلات الحساسة، المجاري المائية/الفيضانات، النزوح، المواقع الثقافية/الدينية.",
+/* photo categories */
+"Site / location":"الموقع / المكان","Generation & storage location":"موقع التوليد والتخزين","Access route":"طريق الوصول","Existing infrastructure":"البنية التحتية القائمة","Settlement / service area":"التجمع السكاني / منطقة الخدمة","Land":"الأرض","Community":"المجتمع","Security":"الأمن","E&S":"البيئة والمجتمع","Other":"أخرى",
+"Yes":"نعم","No":"لا","Unknown":"غير معروف",
+/* section A */
+"Site identification & location":"تعريف الموقع والمكان",
+"Site ID":"رمز الموقع","Settlement / site name":"اسم التجمع السكاني / الموقع","Governorate":"المحافظة","District":"المديرية","Sub-district (uzla)":"العزلة",
+"Villages in proposed service area":"القرى ضمن منطقة الخدمة المقترحة","Nearest town / service hub":"أقرب مدينة / مركز خدمات","Distance to nearest town":"المسافة إلى أقرب مدينة",
+"Assessment date":"تاريخ التقييم","Field team members":"أعضاء الفريق الميداني",
+/* B */
+"Settlement & households":"التجمع السكاني والأسر",
+"Households in service area":"عدد الأسر في منطقة الخدمة","Population (approx.)":"عدد السكان (تقريبي)","Potential household connections":"التوصيلات المنزلية المحتملة",
+"Estimated households the project will supply (recorded indicator).":"العدد التقديري للأسر التي سيغذيها المشروع (مؤشر مسجّل).",
+"Settlement centre to main outer edge":"المسافة من مركز التجمع إلى الطرف الخارجي الرئيسي",
+"Used for the dispersion score (Annex D).":"تُستخدم في درجة التشتّت (الملحق D).",
+"Settlement layout":"نمط التجمع السكاني",
+"Single compact settlement":"تجمع واحد متماسك","Few clusters close together":"عدة تجمعات متقاربة","Several widely separated clusters":"عدة تجمعات متباعدة",
+"Current household electricity source":"مصدر الكهرباء الحالي للأسر",
+"None":"لا يوجد","Solar home systems":"أنظمة شمسية منزلية","Private diesel generator":"مولد ديزل خاص","Neighbourhood / commercial generator":"مولد الحي / تجاري","Public grid (intermittent)":"الشبكة العامة (متقطعة)","Mixed":"مختلط",
+"Notes on households & settlement":"ملاحظات حول الأسر والتجمع السكاني",
+"no.":"عدد","people":"نسمة",
+/* units stay in Latin script, as in technical Arabic documents */
+"km":"km","m":"m","m²":"m²","kW":"kW","kWh/day":"kWh/day","USD/kWh":"USD/kWh","YER/USD":"YER/USD",
+/* C */
+"Businesses, productive uses & anchor loads":"الأنشطة التجارية والاستخدامات الإنتاجية والأحمال الرئيسية",
+"Number of businesses":"عدد الأنشطة التجارية","Main business types":"الأنواع الرئيسية للأنشطة التجارية","Productive-use opportunities":"فرص الاستخدام الإنتاجي",
+/* D */
+"Electricity payment":"مدفوعات الكهرباء",
+"Record current payment levels and stated willingness-to-pay in <b>USD/kWh</b>. The score uses the average of the minimum and maximum (Annex B / C).":"سجّل مستويات الدفع الحالية والاستعداد المُعلن للدفع بوحدة <b>USD/kWh</b>. تستخدم الدرجة متوسط الحد الأدنى والحد الأقصى (الملحق B / C).",
+"Household payment – minimum":"مدفوعات الأسر – الحد الأدنى","Household payment – maximum":"مدفوعات الأسر – الحد الأقصى",
+"Commercial payment – minimum":"المدفوعات التجارية – الحد الأدنى","Commercial payment – maximum":"المدفوعات التجارية – الحد الأقصى",
+"Basis of payment data":"أساس بيانات الدفع","Current payments":"المدفوعات الحالية","Stated willingness-to-pay":"الاستعداد المُعلن للدفع","Both":"كلاهما",
+"Exchange rate used":"سعر الصرف المستخدم","Current tariffs, suppliers & payment notes":"التعرفة الحالية والمورّدون وملاحظات الدفع",
+/* E */
+"Potential electricity demand":"الطلب المحتمل على الكهرباء",
+"Expected peak demand":"ذروة الطلب المتوقعة","Expected daily energy":"الطاقة اليومية المتوقعة","Service radius":"نصف قطر الخدمة","Key demand assumptions":"الافتراضات الرئيسية للطلب",
+/* F */
+"Existing & planned public electrification":"الكهربة العامة القائمة والمخططة",
+"Distance to existing national grid":"المسافة إلى الشبكة الوطنية القائمة",
+"Contextual evidence only – does not itself determine eligibility.":"دليل سياقي فقط – لا يحدد الأهلية بحد ذاته.",
+"Confirmed grid extension plan for the area?":"هل توجد خطة مؤكدة لتمديد الشبكة إلى المنطقة؟",
+"Grid extension details / timeframe":"تفاصيل تمديد الشبكة / الإطار الزمني",
+"Other publicly financed electrification in service area?":"هل توجد كهربة أخرى ممولة من القطاع العام في منطقة الخدمة؟",
+"Details of other public electrification":"تفاصيل الكهربة العامة الأخرى",
+/* G */
+"Government approvals & confirmations":"الموافقات والتأكيدات الحكومية",
+"Authority consulted":"الجهة التي تمت مراجعتها","Ministry of Electricity":"وزارة الكهرباء","GARE":"GARE","PEC":"PEC","Local authority / council":"السلطة المحلية / المجلس",
+"Confirmation / no-objection status":"حالة التأكيد / عدم الممانعة",
+"Received":"تم الاستلام","Requested – awaiting reply":"تم الطلب – بانتظار الرد","Not yet requested":"لم يُطلب بعد","Not required":"غير مطلوب",
+"Reference / date of correspondence":"مرجع / تاريخ المراسلة","Notes":"ملاحظات",
+/* H */
+"Existing electricity infrastructure":"البنية الكهربائية القائمة",
+"Existing electricity infrastructure present?":"هل توجد بنية كهربائية قائمة؟",
+"Type of infrastructure":"نوع البنية التحتية","Distribution network":"شبكة توزيع","Generation (powerhouse / gensets)":"توليد (محطة / مولدات)","Generation + distribution":"توليد + توزيع","Poles / lines only":"أعمدة / خطوط فقط",
+"Overall condition":"الحالة العامة",
+"Largely intact – network & structures usable":"سليمة إلى حد كبير – الشبكة والمنشآت قابلة للاستخدام",
+"Partially usable – significant repairs":"قابلة للاستخدام جزئياً – تحتاج إصلاحات كبيرة",
+"Poor – little usable":"سيئة – القليل قابل للاستخدام",
+"Description & rehabilitation potential":"الوصف وإمكانية إعادة التأهيل",
+/* I */
+"Parcel identification / description":"تحديد / وصف قطعة الأرض","Parcel area":"مساحة قطعة الأرض",
+"Ownership / use right":"الملكية / حق الانتفاع","Government":"حكومية","Community / waqf":"مجتمعية / وقف","Private – donated":"خاصة – متبرَّع بها","Company-owned (Open Window)":"مملوكة لشركة (النافذة المفتوحة)","Tribal / customary":"قبلية / عرفية",
+"Ownership / use-right documentation":"وثائق الملكية / حق الانتفاع","Available":"متوفرة","Partial":"جزئية","Not available":"غير متوفرة",
+"Council / tribal confirmation of no dispute":"تأكيد المجلس / القبيلة بعدم وجود نزاع","Pending":"معلّق",
+"Known disputes or competing claims":"النزاعات أو المطالبات المتعارضة المعروفة",
+/* J */
+"Access & security":"الوصول والأمن",
+"Located in IRG-controlled territory?":"هل يقع ضمن مناطق سيطرة الحكومة المعترف بها دولياً؟","Unclear":"غير واضح",
+"Distance to nearest active frontline":"المسافة إلى أقرب خط مواجهة نشط",
+"Attacks / incidents on public infrastructure (past 2 years)":"الهجمات / الحوادث على البنية التحتية العامة (آخر سنتين)",
+"None known":"لا يوجد معروف","1–2 incidents":"1–2 حادثة","3 or more":"3 أو أكثر",
+"Incident details / source":"تفاصيل الحوادث / المصدر",
+"Access-route condition":"حالة طريق الوصول","Paved road":"طريق معبّد","Gravel / all-weather track":"طريق حصوي / صالح لكل الأحوال","Dirt track (4x4)":"طريق ترابي (دفع رباعي)","Poor / difficult":"سيئ / صعب",
+"Seasonal passability":"إمكانية العبور الموسمية","Year-round":"طوال العام","Seasonal restrictions":"قيود موسمية","Impassable in rainy season":"غير صالح للعبور في موسم الأمطار",
+"Local security arrangements":"الترتيبات الأمنية المحلية",
+/* K */
+"Community & institutional conditions":"الظروف المجتمعية والمؤسسية",
+"Local council status":"وضع المجلس المحلي","Active":"فاعل","Partially active":"فاعل جزئياً","Not active":"غير فاعل",
+"Named local counterpart (name / role)":"الشخص المقابل المحلي (الاسم / الصفة)",
+"Community endorsement":"التأييد المجتمعي","Documented":"موثّق","Verbal only":"شفهي فقط","Not yet obtained":"لم يُحصل عليه بعد","Not required at this stage":"غير مطلوب في هذه المرحلة",
+"Consultation date":"تاريخ المشاورة","Stakeholders consulted":"الأطراف المعنية التي تمت استشارتها",
+"Principal issues, concerns or agreements":"القضايا أو المخاوف أو الاتفاقات الرئيسية","Disputes / social-cohesion concerns":"النزاعات / مخاوف التماسك الاجتماعي",
+/* L */
+"Climate risk & preliminary E&S (non-scored)":"مخاطر المناخ والفحص البيئي والاجتماعي الأولي (دون درجات)",
+"Non-scored information. Used to flag design or due-diligence issues; does not affect eligibility or the weighted score.":"معلومات غير مُقيّمة بالدرجات. تُستخدم للإشارة إلى قضايا التصميم أو العناية الواجبة، ولا تؤثر على الأهلية أو الدرجة المرجّحة.",
+"Flood / waterway exposure":"التعرض للفيضانات / المجاري المائية","None observed":"لم يُلاحظ شيء","Seasonal ponding / wadi nearby":"تجمع مياه موسمي / وادٍ قريب","Within flood path / history of flooding":"ضمن مسار السيول / سوابق فيضانات",
+"Other climate hazards (heat, dust, wind, landslide)":"مخاطر مناخية أخرى (الحرارة، الغبار، الرياح، الانهيارات)",
+"Current land use of the site":"الاستخدام الحالي لأرض الموقع",
+"Sensitive receptors nearby (homes, schools, water sources)":"مستقبِلات حساسة قريبة (منازل، مدارس، مصادر مياه)",
+"Displacement risk":"خطر النزوح","Economic – avoidable by siting":"اقتصادي – يمكن تجنبه باختيار الموقع","Economic – likely":"اقتصادي – مرجّح","Physical resettlement":"إعادة توطين مادية",
+"Cultural / religious site in or near footprint?":"هل يوجد موقع ثقافي / ديني داخل نطاق المشروع أو بالقرب منه؟",
+"Critical habitat / protected area?":"موئل حرج / منطقة محمية؟",
+"Preliminary E&S category (Annex F)":"التصنيف البيئي والاجتماعي الأولي (الملحق F)","Low":"منخفض","Moderate":"متوسط","Substantial":"كبير","High":"مرتفع",
+"E&S red flags & follow-up":"المؤشرات الحمراء البيئية والاجتماعية والمتابعة",
+/* M, N */
+"Supporting evidence":"الأدلة الداعمة",
+"Outstanding information / follow-up":"المعلومات المعلّقة / المتابعة",
+"Outstanding information / follow-up required":"المعلومات المعلّقة / المتابعة المطلوبة",
+"Record any missing evidence here; it must be resolved before final screening.":"سجّل أي أدلة ناقصة هنا، ويجب استكمالها قبل الفحص النهائي.",
+"Stage 1 – field submission & sign-off":"المرحلة 1 – التقديم الميداني والاعتماد",
+"Surveyor name":"اسم المسّاح","Submission date":"تاريخ التقديم","Field data verified and submitted":"تم التحقق من البيانات الميدانية وتقديمها",
+/* statuses */
+"Eligible":"مؤهل","Ineligible":"غير مؤهل","Not reviewed":"لم تتم المراجعة","Submitted":"مُقدَّم","Draft":"مسودة",
+"Field: {0}":"الميداني: {0}","{0}% complete":"مكتمل {0}%","Score {0}":"الدرجة {0}","E&S {0}":"البيئة والمجتمع: {0}","{0} photo(s)":"{0} صورة",
+/* site list */
+"All statuses":"جميع الحالات","Search site ID, name, district…":"ابحث برمز الموقع أو الاسم أو المديرية…","New site":"موقع جديد",
+"No sites yet":"لا توجد مواقع بعد",
+"Tap <b>New site</b> to start a field assessment, or tap a point on the Map to add a candidate site there.":"اضغط <b>موقع جديد</b> لبدء تقييم ميداني، أو اضغط على نقطة في الخريطة لإضافة موقع مرشّح هناك.",
+"No sites match.":"لا توجد مواقع مطابقة.","Location not set":"لم يُحدَّد المكان","Unnamed site":"موقع بدون اسم","Rank {0}":"الترتيب {0}","score":"الدرجة","Field form completeness":"اكتمال الاستمارة الميدانية",
+/* editor */
+"Back":"رجوع","Print / save as PDF":"طباعة / حفظ PDF","PDF":"PDF","Delete site":"حذف الموقع","Field form":"الاستمارة الميدانية","Committee review":"مراجعة اللجنة","(optional)":"(اختياري)",
+"Field teams record information and evidence only. Eligibility and scores are determined in the Committee review tab.":"تسجّل الفرق الميدانية المعلومات والأدلة فقط. تُحدَّد الأهلية والدرجات في تبويب مراجعة اللجنة.",
+"Capture GPS":"التقاط GPS","Stop GPS":"إيقاف GPS","± {0} m accuracy":"دقة ± {0} m","Stand at the proposed generation site":"قف في موقع التوليد المقترح","Open in Maps":"فتح في الخرائط",
+"Latitude":"خط العرض","Longitude":"خط الطول","Elevation":"الارتفاع","GPS accuracy":"دقة GPS","± {0} m – improving…":"± {0} m – جارٍ التحسين…",
+"GPS is not available on this device":"GPS غير متوفر على هذا الجهاز","GPS: {0}":"GPS: {0}","GPS coordinates":"إحداثيات GPS",
+"Anchor & productive loads (Annex A)":"الأحمال الرئيسية والإنتاجية (الملحق A)",
+"List each anchor or productive user with an estimated daily consumption, e.g. telecom tower, water pump, grain mill, cold room.":"أدرج كل مستخدم رئيسي أو إنتاجي مع الاستهلاك اليومي التقديري، مثل برج اتصالات أو مضخة مياه أو مطحنة حبوب أو غرفة تبريد.",
+"Description":"الوصف","Remove":"إزالة","+ Add anchor load":"+ إضافة حمل رئيسي","No anchor load present":"لا يوجد حمل رئيسي",
+"Total <b>{0} kWh/day</b> → reference score <b>{1}</b>":"الإجمالي <b>{0} kWh/day</b> ← الدرجة المرجعية <b>{1}</b>",
+"Minimum supporting evidence (§1.3)":"الحد الأدنى من الأدلة الداعمة (§1.3)",
+"For each item, photograph the document with the camera, add a photo from the gallery, or paste a Google Drive link.":"لكل بند، صوّر المستند بالكاميرا، أو أضف صورة من المعرض، أو الصق رابط Google Drive.",
+"Status…":"الحالة…","Collected":"تم جمعه","Not applicable":"لا ينطبق","Caption":"تعليق","Delete photo":"حذف الصورة","Open":"فتح","Remove link":"إزالة الرابط",
+"📷 Camera":"📷 الكاميرا","🖼 Gallery":"🖼 المعرض","🔗 Drive link":"🔗 رابط Drive","{0} site photo(s) – see Photos below":"{0} صورة للموقع – انظر الصور أدناه",
+"Links must start with https://":"يجب أن يبدأ الرابط بـ https://","Evidence photo":"صورة دليل",
+"Photos":"الصور","📷 Take photo":"📷 التقاط صورة","Add from gallery":"إضافة من المعرض","Photos are resized and tagged with the last GPS fix.":"يتم تصغير الصور ووسمها بآخر إحداثيات GPS.",
+"Site photo":"صورة الموقع","Could not read image":"تعذّرت قراءة الصورة","Delete this photo?":"حذف هذه الصورة؟",
+/* review */
+"Complete after reviewing the field assessment and supporting evidence. A site must be <b>Eligible</b> on all five requirements before its weighted score counts for ranking.":"تُستكمل بعد مراجعة التقييم الميداني والأدلة الداعمة. يجب أن يكون الموقع <b>مؤهلاً</b> في المتطلبات الخمسة جميعها قبل احتساب درجته المرجّحة في الترتيب.",
+"Eligibility screening (§2.3)":"فحص الأهلية (§2.3)","— Result —":"— النتيجة —","Comments / basis":"التعليقات / الأساس","Overall eligibility:":"الأهلية الإجمالية:","Overall eligibility":"الأهلية الإجمالية","No field data yet":"لا توجد بيانات ميدانية بعد",
+"Prioritization (§2.4)":"تحديد الأولويات (§2.4)",
+"Scores are suggested from field data using the Annex bands. Select a value to confirm or override it.":"تُقترح الدرجات من البيانات الميدانية وفق نطاقات الملاحق. اختر قيمة لتأكيدها أو تعديلها.",
+"weight {0}%":"الوزن {0}%","Use suggested":"استخدام المقترح","Anchor-load reference score":"الدرجة المرجعية للحمل الرئيسي","not weighted":"غير مرجّحة",
+"Estimated potential household connections":"العدد التقديري للتوصيلات المنزلية المحتملة","recorded indicator":"مؤشر مسجّل",
+"/ 5 weighted score":"/ 5 الدرجة المرجّحة","Needs all four criteria scored":"يتطلب تقييم المعايير الأربعة جميعها","Counts toward ranking":"تُحتسب في الترتيب","Provisional – ranked only once Eligible":"مؤقتة – تُرتَّب فقط بعد ثبوت الأهلية",
+"Suggested: {0} ({1})":"المقترح: {0} ({1})","committee value used":"تم استخدام قيمة اللجنة",
+"several widely separated clusters":"عدة تجمعات متباعدة","radius {0} km":"نصف القطر {0} km","no radius recorded (Section B)":"لم يُسجَّل نصف القطر (القسم B)",
+"avg {0} USD/kWh":"المتوسط {0} USD/kWh","no household payment data (Section D)":"لا توجد بيانات مدفوعات الأسر (القسم D)","no commercial payment data (Section D)":"لا توجد بيانات المدفوعات التجارية (القسم D)",
+"condition: {0}":"الحالة: {0}"," – intermediate scores need technical judgement":" – الدرجات الوسطى تتطلب تقديراً فنياً","no infrastructure data (Section H)":"لا توجد بيانات البنية التحتية (القسم H)",
+"{0} kWh/day of anchor load":"{0} kWh/day من الحمل الرئيسي","No anchor loads recorded (Section C)":"لم تُسجَّل أحمال رئيسية (القسم C)",
+"Review sign-off":"اعتماد المراجعة","Key risks / issues requiring follow-up":"المخاطر / القضايا الرئيسية التي تتطلب متابعة","Reviewer name":"اسم المراجع","Review date":"تاريخ المراجعة",
+"Stage 2 – committee sign-off":"المرحلة 2 – اعتماد اللجنة","Committee reviewer":"مراجع اللجنة","Date":"التاريخ","Scoring inputs":"مدخلات التقييم","Outstanding issues":"القضايا المعلّقة",
+"Eligibility determination confirmed":"تم تأكيد قرار الأهلية","Stage 3 – assessment model":"المرحلة 3 – نموذج التقييم","Entered into site register by":"أُدخل في سجل المواقع بواسطة","Reference":"المرجع","Final assessment result":"نتيجة التقييم النهائية",
+/* map */
+"The map could not load.":"تعذّر تحميل الخريطة.",
+"The map library and tiles need an internet connection. Site data and forms still work offline.":"تحتاج الخريطة إلى اتصال بالإنترنت. تعمل بيانات المواقع والاستمارات دون اتصال.",
+"Satellite":"قمر صناعي","Street map":"خريطة الشوارع","Status":"الحالة","Score":"الدرجة","rank {0}":"الترتيب {0}","Open site":"فتح الموقع","Tap map to add a site":"اضغط على الخريطة لإضافة موقع",
+"◎ My location":"◎ موقعي","GPS not available":"GPS غير متوفر","+ New site here":"+ موقع جديد هنا",
+/* register */
+"Site Register":"سجل المواقع","Export Excel (CSV)":"تصدير Excel (CSV)","Report (PDF)":"التقرير (PDF)",
+"Only <b>Eligible</b> sites with all four criteria scored are ranked. Weights: dispersion {0}%, household payment {1}%, commercial payment {2}%, rehabilitation {3}%.":"تُرتَّب فقط المواقع <b>المؤهلة</b> التي قُيّمت في المعايير الأربعة. الأوزان: التشتّت {0}%، مدفوعات الأسر {1}%، المدفوعات التجارية {2}%، إعادة التأهيل {3}%.",
+"Rank":"الترتيب","Site":"الموقع","Eligibility":"الأهلية","Disp.":"التشتّت","HH pay":"دفع الأسر","Com. pay":"الدفع التجاري","Rehab":"التأهيل","Weighted":"المرجّحة","Anchor ref":"الحمل المرجعي","HH conn.":"التوصيلات",
+"Suggested, not yet confirmed":"مقترحة، لم تُؤكَّد بعد","* Suggested from field data, not yet confirmed by the committee.":"* مقترحة من البيانات الميدانية، ولم تؤكدها اللجنة بعد.",
+"Eligibility detail":"تفاصيل الأهلية","No sites yet.":"لا توجد مواقع بعد.","Unnamed":"بدون اسم",
+/* settings */
+"Methodology & data":"المنهجية والبيانات","Project":"المشروع","Project name":"اسم المشروع","Country":"الدولة","Site ID prefix":"بادئة رمز الموقع",
+"Weights (§2.4)":"الأوزان (§2.4)","Criterion":"المعيار","Weight":"الوزن","Share":"الحصة","Total {0}%":"الإجمالي {0}%",
+"– does not add up to 100%; scores use each criterion's share instead":"– المجموع لا يساوي 100%، وتستخدم الدرجات حصة كل معيار بدلاً من ذلك",
+"Payment bands – Annex B / C (USD/kWh)":"نطاقات الدفع – الملحق B / C (USD/kWh)",
+"1 → 2 at":"من 1 إلى 2 عند","2 → 3 above":"من 2 إلى 3 فوق","3 → 4 at":"من 3 إلى 4 عند","4 → 5 above":"من 4 إلى 5 فوق",
+"Score 1 &lt; {0} · 2 ≤ {1} · 3 &lt; {2} · 4 ≤ {3} · 5 above.":"الدرجة 1 &lt; {0} · 2 ≤ {1} · 3 &lt; {2} · 4 ≤ {3} · 5 أعلى من ذلك.",
+"Dispersion bands – Annex D (km)":"نطاقات التشتّت – الملحق D (km)",
+"Score 5 up to":"الدرجة 5 حتى","Score 4 up to":"الدرجة 4 حتى","Score 3 up to":"الدرجة 3 حتى","Score 2 up to":"الدرجة 2 حتى","Score 1 up to":"الدرجة 1 حتى",
+"Anchor-load bands – Annex A (kWh/day)":"نطاقات الحمل الرئيسي – الملحق A (kWh/day)",
+"Reset to RESET initial framework":"إعادة الضبط إلى الإطار الأولي لـ RESET",
+"Payment bands":"نطاقات الدفع","Dispersion bands":"نطاقات التشتّت","Anchor-load bands":"نطاقات الحمل الرئيسي",
+"{0}: values cannot be negative.":"{0}: لا يمكن أن تكون القيم سالبة.","{0}: each value must be larger than the one before.":"{0}: يجب أن تكون كل قيمة أكبر من السابقة.",
+"Weights cannot be negative.":"لا يمكن أن تكون الأوزان سالبة.","Scores will be wrong until this is fixed.":"ستكون الدرجات خاطئة حتى يتم تصحيح ذلك.",
+"Export & share":"التصدير والمشاركة",
+"Data is stored on this device only. Use a backup file to move data between phones or merge the team's surveys.":"تُخزَّن البيانات على هذا الجهاز فقط. استخدم ملف النسخة الاحتياطية لنقل البيانات بين الهواتف أو دمج مسوحات الفريق.",
+"Site Register report (PDF)":"تقرير سجل المواقع (PDF)","Download backup (.json)":"تنزيل نسخة احتياطية (.json)","Import / merge backup":"استيراد / دمج نسخة احتياطية","Delete all data on this device":"حذف جميع البيانات على هذا الجهاز",
+"{0} sites · {1} MB used on this device":"{0} موقع · {1} MB مستخدمة على هذا الجهاز"," · WARNING: storage unavailable, data will be lost on reload":" · تحذير: التخزين غير متوفر، وستُفقد البيانات عند إعادة التحميل",
+"Built from the RESET Mini-Grid Site Screening and Assessment Tool, Part I (initial framework). Thresholds and weights are initial values, to be reviewed after the first round of field assessments.":"مبني على أداة فحص وتقييم مواقع الشبكات المصغّرة لمشروع RESET، الجزء الأول (الإطار الأولي). الحدود والأوزان قيم أولية تُراجَع بعد الجولة الأولى من التقييمات الميدانية.",
+/* confirms & toasts */
+"Delete {0} and its photos from this device? This cannot be undone.":"حذف {0} وصوره من هذا الجهاز؟ لا يمكن التراجع عن ذلك.","Site deleted":"تم حذف الموقع",
+"Reset weights and scoring bands to the RESET initial framework?":"إعادة ضبط الأوزان ونطاقات التقييم إلى الإطار الأولي لـ RESET؟",
+"Permanently delete ALL sites and photos on this device? Download a backup first if you need the data. This cannot be undone.":"حذف جميع المواقع والصور على هذا الجهاز نهائياً؟ نزّل نسخة احتياطية أولاً إذا كنت تحتاج البيانات. لا يمكن التراجع عن ذلك.",
+"Type DELETE to confirm":"اكتب DELETE للتأكيد","All data deleted":"تم حذف جميع البيانات",
+"That file is not a valid backup":"هذا الملف ليس نسخة احتياطية صالحة","That file is not a RESET site assessment backup":"هذا الملف ليس نسخة احتياطية لتقييم مواقع RESET",
+"Also replace this device's weights and scoring bands with those in the backup?":"هل تريد أيضاً استبدال الأوزان ونطاقات التقييم على هذا الجهاز بتلك الموجودة في النسخة الاحتياطية؟",
+"Imported: {0} new, {1} updated, {2} unchanged":"تم الاستيراد: {0} جديد، {1} محدَّث، {2} دون تغيير",
+"Device storage is unavailable – data will not be kept after closing.":"تخزين الجهاز غير متوفر – لن تُحفظ البيانات بعد الإغلاق.",
+"No sites to report":"لا توجد مواقع للتقرير",
+"Include the full Site Assessment Form for every site?\n\nOK = full report · Cancel = register summary only":"هل تريد تضمين استمارة تقييم الموقع الكاملة لكل موقع؟\n\nموافق = تقرير كامل · إلغاء = ملخص السجل فقط",
+/* report */
+"Site Assessment Form":"استمارة تقييم الموقع","Weighted score":"الدرجة المرجّحة","Field status":"الحالة الميدانية","Form completeness":"اكتمال الاستمارة",
+"Anchor / productive loads":"الأحمال الرئيسية / الإنتاجية","Total {0} kWh/day → reference score {1}":"الإجمالي {0} kWh/day ← الدرجة المرجعية {1}","No anchor load (score 0)":"لا يوجد حمل رئيسي (الدرجة 0)",
+" – ref. {0}":" – مرجع {0}","{0} photo(s) attached":"{0} صورة مرفقة","Site photographs ({0})":"صور الموقع ({0})","Evidence – {0} ({1})":"الأدلة – {0} ({1})",
+"Independent technical committee review – eligibility":"مراجعة اللجنة الفنية المستقلة – الأهلية","Requirement":"المتطلب","Result":"النتيجة","Prioritization":"تحديد الأولويات","Source":"المصدر",
+"Committee":"اللجنة","Suggested from field data":"مقترحة من البيانات الميدانية","Anchor-load reference score (not weighted)":"الدرجة المرجعية للحمل الرئيسي (غير مرجّحة)","Recorded indicator":"مؤشر مسجّل",
+"Reviewer / date":"المراجع / التاريخ","Stage 2 – committee reviewer / date":"المرحلة 2 – مراجع اللجنة / التاريخ","Scoring inputs / outstanding issues":"مدخلات التقييم / القضايا المعلّقة",
+"Stage 3 – entered by / date / reference":"المرحلة 3 – أدخله / التاريخ / المرجع","Surveyor signature":"توقيع المسّاح","Reviewer signature":"توقيع المراجع",
+"Site Register & Screening report · {0}":"تقرير سجل المواقع والفحص · {0}",
+"Generated {0} · {1} candidate sites · {2} eligible · {3} pending / not reviewed · {4} ineligible":"أُعدّ في {0} · {1} موقع مرشّح · {2} مؤهل · {3} معلّق / لم تتم مراجعته · {4} غير مؤهل",
+"1. Ranking of eligible sites":"1. ترتيب المواقع المؤهلة","Settlement":"التجمع السكاني","Weighted (/5)":"المرجّحة (/5)","No sites are yet eligible with complete scores.":"لا توجد بعد مواقع مؤهلة بدرجات مكتملة.",
+"2. Eligibility screening":"2. فحص الأهلية","Overall":"الإجمالي","3. Method":"3. المنهجية",
+"Sites are screened against five minimum eligibility requirements (§2.3). A site is <b>Eligible</b> only when all five are met, <b>Ineligible</b> when any is not met, and <b>Pending</b> where information is insufficient. Eligible sites are compared on four weighted criteria scored 1–5 (§2.4): dispersion {0}%, household payment {1}%, commercial payment {2}%, rehabilitable infrastructure {3}%. The anchor-load score (Annex A) and potential household connections are recorded for reference and are not weighted.":"تُفحص المواقع وفق خمسة متطلبات دنيا للأهلية (§2.3). يكون الموقع <b>مؤهلاً</b> فقط عند استيفاء المتطلبات الخمسة، و<b>غير مؤهل</b> عند عدم استيفاء أي منها، و<b>معلّقاً</b> عندما تكون المعلومات غير كافية. تُقارن المواقع المؤهلة وفق أربعة معايير مرجّحة تُقيّم من 1 إلى 5 (§2.4): التشتّت {0}%، مدفوعات الأسر {1}%، المدفوعات التجارية {2}%، البنية التحتية القابلة لإعادة التأهيل {3}%. تُسجَّل درجة الحمل الرئيسي (الملحق A) والتوصيلات المنزلية المحتملة للمرجعية ولا تدخل في الترجيح.",
+"Band":"النطاق","Values":"القيم",
+"Payment (Annex B/C, USD/kWh, average of min & max)":"الدفع (الملحق B/C، USD/kWh، متوسط الحد الأدنى والأقصى)",
+"Dispersion (Annex D, km centre to outer edge)":"التشتّت (الملحق D، km من المركز إلى الطرف الخارجي)",
+"Anchor load (Annex A, kWh/day)":"الحمل الرئيسي (الملحق A، kWh/day)","Rehabilitable infrastructure (Annex E)":"البنية التحتية القابلة لإعادة التأهيل (الملحق E)",
+"or several widely separated clusters":"أو عدة تجمعات متباعدة","none":"لا يوجد",
+"1: weak · 2–4: intermediate, by technical judgement · 5: strong":"1: ضعيفة · 2–4: متوسطة، بتقدير فني · 5: قوية",
+/* CSV */
+"Latitude ":"خط العرض","GPS accuracy (m)":"دقة GPS (m)","Elevation (m)":"الارتفاع (m)","Anchor loads":"الأحمال الرئيسية","Anchor load total (kWh/day)":"إجمالي الحمل الرئيسي (kWh/day)",
+"HH payment avg (USD/kWh)":"متوسط دفع الأسر (USD/kWh)","Commercial payment avg (USD/kWh)":"متوسط الدفع التجاري (USD/kWh)",
+"Evidence: {0}":"الدليل: {0}","Evidence ref: {0}":"مرجع الدليل: {0}","Evidence photos: {0}":"صور الدليل: {0}","Evidence links: {0}":"روابط الدليل: {0}",
+"Eligibility: {0}":"الأهلية: {0}","Comments: {0}":"التعليقات: {0}","{0} score":"درجة {0}","{0} confirmed":"تأكيد {0}","Weighted score (/5)":"الدرجة المرجّحة (/5)",
+"Key risks":"المخاطر الرئيسية","Reviewer":"المراجع","Stage 2 reviewer":"مراجع المرحلة 2","Stage 2 date":"تاريخ المرحلة 2","Eligibility confirmed":"تأكيد الأهلية",
+"App on this device":"التطبيق على هذا الجهاز","Install app":"تثبيت التطبيق",
+"Ready to work offline. The map only shows areas already viewed online.":"جاهز للعمل دون اتصال. تعرض الخريطة فقط المناطق التي سبق عرضها أثناء الاتصال.",
+"Preparing offline use… keep this page open for a moment while online.":"جارٍ التجهيز للعمل دون اتصال… أبقِ هذه الصفحة مفتوحة لحظة أثناء الاتصال.",
+"Offline use needs the app to be opened from its https web address.":"يتطلب العمل دون اتصال فتح التطبيق من عنوانه على الويب (https).",
+"To install, use the browser menu → Add to Home screen.":"للتثبيت، استخدم قائمة المتصفح ← إضافة إلى الشاشة الرئيسية.",
+"Installed – opens from the home screen.":"مثبّت – يفتح من الشاشة الرئيسية.",
+"This browser could not set up offline use. Open the app in Chrome or Edge.":"تعذّر على هذا المتصفح تجهيز العمل دون اتصال. افتح التطبيق في Chrome أو Edge.",
+"Entered by":"أدخله","Entry date":"تاريخ الإدخال","Final result":"النتيجة النهائية","Last updated":"آخر تحديث","Suggested":"مقترحة"
+};
+
+/* ================= language ================= */
+let LANG='en';
+try{LANG=localStorage.getItem('rsa.lang')||((navigator.language||'').toLowerCase().startsWith('ar')?'ar':'en')}catch(e){}
+const MISSING=new Set();
+const has=k=>Object.prototype.hasOwnProperty.call(AR,k);
+function t(s,...a){let r=s;if(LANG==='ar'){if(has(s))r=AR[s];else MISSING.add(s)}a.forEach((v,i)=>{r=r.split('{'+i+'}').join(String(v))});return r}
+const tv=v=>(LANG==='ar'&&v!=null&&has(v))?AR[v]:v;   // translate a stored value if it is a known option
+function applyLang(){
+  const h=document.documentElement;h.lang=LANG;h.dir=LANG==='ar'?'rtl':'ltr';
+  const b=$('#langBtn');b.textContent=LANG==='ar'?'English':'العربية';b.lang=LANG==='ar'?'en':'ar';
+  $$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n)});
+  document.title=t('RESET Site Assessment');
+}
+function setLang(l){LANG=l==='ar'?'ar':'en';try{localStorage.setItem('rsa.lang',LANG)}catch(e){}applyLang();route()}
+
+/* ================= helpers ================= */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const et=(s,...a)=>esc(t(s,...a));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const num=v=>{if(v===null||v===undefined||v==='')return null;const n=parseFloat(String(v).replace(',','.'));return Number.isFinite(n)?n:null};
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt=(n,d=2)=>n==null?'—':Number(n).toFixed(d).replace(/\.?0+$/,'')||'0';
+function toast(msg,ms=2600){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),ms)}
+function setPath(o,p,v){const ks=p.split('.');let a=o;for(let i=0;i<ks.length-1;i++){if(a[ks[i]]==null||typeof a[ks[i]]!=='object')a[ks[i]]={};a=a[ks[i]]}a[ks[ks.length-1]]=v}
+function download(content,type,name){const b=content instanceof Blob?content:new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+const slug=s=>String(s||'export').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'export';
+
+/* ================= storage (IndexedDB, memory fallback) ================= */
+const DB={db:null,mem:{meta:{},sites:{}},
+  open(){return new Promise(res=>{try{const r=indexedDB.open('reset-site-assessment',1);
+    r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta');if(!d.objectStoreNames.contains('sites'))d.createObjectStore('sites',{keyPath:'id'})};
+    r.onsuccess=()=>{this.db=r.result;res(true)};r.onerror=()=>res(false);r.onblocked=()=>res(false)}catch(e){res(false)}})},
+  run(store,mode,fn){return new Promise((res,rej)=>{const tx=this.db.transaction(store,mode);const q=fn(tx.objectStore(store));tx.oncomplete=()=>res(q?q.result:undefined);tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error)})},
+  get(store,key){return this.db?this.run(store,'readonly',s=>s.get(key)):Promise.resolve(this.mem[store][key])},
+  put(store,val,key){if(!this.db){this.mem[store][key??val.id]=val;return Promise.resolve()}return this.run(store,'readwrite',s=>key!==undefined?s.put(val,key):s.put(val))},
+  del(store,key){if(!this.db){delete this.mem[store][key];return Promise.resolve()}return this.run(store,'readwrite',s=>s.delete(key))},
+  all(store){return this.db?this.run(store,'readonly',s=>s.getAll()):Promise.resolve(Object.values(this.mem[store]))},
+  clear(store){if(!this.db){this.mem[store]={};return Promise.resolve()}return this.run(store,'readwrite',s=>s.clear())}
+};
+
+/* ================= methodology configuration ================= */
+const DEFAULT_CFG={
+  projectName:'RESET Mini-Grid Site Screening',
+  country:'Yemen',
+  idPrefix:'RESET-',
+  weights:{disp:25,hhpay:25,compay:25,rehab:25},
+  payBands:[0.01,0.02,0.07,0.08],      // Annex B/C (USD/kWh)
+  dispBands:[1,2,3,5],                  // Annex D (km)
+  anchorBands:[10,30,80,180]            // Annex A (kWh/day)
+};
+const projName=()=>cfg.projectName===DEFAULT_CFG.projectName?t(cfg.projectName):(cfg.projectName||t('RESET Site Assessment'));
+const countryName=()=>tv(cfg.country);
+const CRIT=[
+  {k:'disp',  n:'Household / village dispersion', annex:'D'},
+  {k:'hhpay', n:'Household electricity payment',   annex:'B'},
+  {k:'compay',n:'Commercial electricity payment',  annex:'C'},
+  {k:'rehab', n:'Rehabilitable infrastructure',    annex:'E'}
+];
+const ELIG=[
+  {k:'security', n:'Security and access', req:'Reasonably secure location in IRG-controlled territory, away from active frontlines, with safe year-round construction and O&M access.',
+    ev:s=>[['IRG-controlled',tv(s.f.irg)],['Distance to frontline',s.f.frontKm&&s.f.frontKm+' km'],['Incidents (2 yrs)',tv(s.f.incidents)],['Route',tv(s.f.routeCond)],['Passability',tv(s.f.passable)]]},
+  {k:'grid', n:'No conflicting public electrification', req:'No confirmed Government plan for grid extension or other publicly financed supply that conflicts with the mini-grid, plus confirmation / no-objection from the competent authority.',
+    ev:s=>[['Grid extension planned',tv(s.f.gridPlan)],['Other public electrification',tv(s.f.otherPublic)],['Govt confirmation',tv(s.f.govStatus)],['Grid distance',s.f.gridKm&&s.f.gridKm+' km']]},
+  {k:'land', n:'Land available and undisputed', req:'Suitable land near the load centre with documented ownership or use rights and no unresolved land or tribal dispute.',
+    ev:s=>[['Ownership',tv(s.f.landOwner)],['Documentation',tv(s.f.landDocs)],['No-dispute confirmation',tv(s.f.landNoDispute)],['Distance to load centre',s.f.landDistLoad&&s.f.landDistLoad+' m']]},
+  {k:'demand', n:'Minimum viable demand', req:'Sufficient households, businesses and expected load to justify a mini-grid rather than solar home systems. (Quantitative threshold under methodological confirmation.)',
+    ev:s=>{const d=derive(s);return [['Households',s.f.hh],['Businesses',s.f.biz],['Peak demand',s.f.peakKw&&s.f.peakKw+' kW'],['Anchor load',d.anchorTotal!=null?fmt(d.anchorTotal,1)+' kWh/day':'']]}},
+  {k:'community', n:'Community readiness', req:'Active local leadership, documented community endorsement, and no unresolved disputes likely to disrupt construction or payment.',
+    ev:s=>[['Local council',tv(s.f.council)],['Counterpart',s.f.counterpart],['Endorsement',tv(s.f.endorse)],['Disputes',s.f.disputes?t('recorded'):'']]}
+];
+const EVIDENCE=[
+  {k:'photos',   n:'Site and location evidence', d:'GPS and photos: settlement/service area, generation & storage location, access route, existing electricity infrastructure.', ref:'Photos'},
+  {k:'govt',     n:'Government & electrification planning', d:'Govt / GARE / PEC confirmation or correspondence on existing or planned grid extension; no-objection where required.', ref:'Govt'},
+  {k:'land',     n:'Land documentation', d:'Ownership or use-right documents; local authority / tribal confirmation on land status or disputes.', ref:'Land'},
+  {k:'community',n:'Community consultation record', d:'Stakeholders consulted, principal issues, concerns or agreements.', ref:'Community'},
+  {k:'security', n:'Security & accessibility evidence', d:'Source or reference for material security / access conditions (subject to information-handling rules).', ref:'Security'},
+  {k:'es',       n:'Environmental & social evidence', d:'Photos or records of E&S issues: land use, receptors, waterways/flooding, displacement, cultural/religious sites.', ref:'ES'}
+];
+const EV_STATUS=['Collected','Partial','Not available','Not applicable'];
+const PHOTO_CATS=['Site / location','Generation & storage location','Access route','Existing infrastructure','Settlement / service area','Land','Community','Security','E&S','Other'];
+const YNU=['Yes','No','Unknown'];
+
+/* ================= field form (Sections A–N) =================
+   Option values are stored in English; only their labels are translated. */
+const SECTIONS=[
+ {id:'A',t:'Site identification & location',f:[
+   {k:'siteId',l:'Site ID'},
+   {k:'name',l:'Settlement / site name'},
+   {k:'gov',l:'Governorate'},
+   {k:'district',l:'District'},
+   {k:'subdistrict',l:'Sub-district (uzla)'},
+   {k:'villages',l:'Villages in proposed service area'},
+   {gps:true},
+   {k:'nearTown',l:'Nearest town / service hub'},
+   {k:'nearTownKm',l:'Distance to nearest town',type:'num',u:'km'},
+   {k:'surveyDate',l:'Assessment date',type:'date'},
+   {k:'team',l:'Field team members',opt:true},
+ ]},
+ {id:'B',t:'Settlement & households',f:[
+   {k:'hh',l:'Households in service area',type:'num',u:'no.'},
+   {k:'pop',l:'Population (approx.)',type:'num',u:'people'},
+   {k:'hhConn',l:'Potential household connections',type:'num',u:'no.',hint:'Estimated households the project will supply (recorded indicator).'},
+   {k:'radiusKm',l:'Settlement centre to main outer edge',type:'num',u:'km',hint:'Used for the dispersion score (Annex D).'},
+   {k:'layout',l:'Settlement layout',type:'sel',o:['Single compact settlement','Few clusters close together','Several widely separated clusters']},
+   {k:'hhSource',l:'Current household electricity source',type:'sel',o:['None','Solar home systems','Private diesel generator','Neighbourhood / commercial generator','Public grid (intermittent)','Mixed']},
+   {k:'hhNotes',l:'Notes on households & settlement',type:'ta',opt:true,wide:true},
+ ]},
+ {id:'C',t:'Businesses, productive uses & anchor loads',f:[
+   {k:'biz',l:'Number of businesses',type:'num',u:'no.'},
+   {k:'bizTypes',l:'Main business types',type:'ta',wide:true},
+   {k:'pue',l:'Productive-use opportunities',type:'ta',opt:true,wide:true},
+   {anchors:true},
+ ]},
+ {id:'D',t:'Electricity payment',f:[
+   {note:'Record current payment levels and stated willingness-to-pay in <b>USD/kWh</b>. The score uses the average of the minimum and maximum (Annex B / C).'},
+   {k:'hhPayMin',l:'Household payment – minimum',type:'num',u:'USD/kWh'},
+   {k:'hhPayMax',l:'Household payment – maximum',type:'num',u:'USD/kWh'},
+   {k:'comPayMin',l:'Commercial payment – minimum',type:'num',u:'USD/kWh'},
+   {k:'comPayMax',l:'Commercial payment – maximum',type:'num',u:'USD/kWh'},
+   {k:'payBasis',l:'Basis of payment data',type:'sel',o:['Current payments','Stated willingness-to-pay','Both']},
+   {k:'fxRate',l:'Exchange rate used',type:'num',u:'YER/USD',opt:true},
+   {k:'payNotes',l:'Current tariffs, suppliers & payment notes',type:'ta',opt:true,wide:true},
+ ]},
+ {id:'E',t:'Potential electricity demand',f:[
+   {k:'peakKw',l:'Expected peak demand',type:'num',u:'kW'},
+   {k:'dailyKwh',l:'Expected daily energy',type:'num',u:'kWh/day'},
+   {k:'serviceKm',l:'Service radius',type:'num',u:'km'},
+   {k:'demandAssump',l:'Key demand assumptions',type:'ta',wide:true},
+ ]},
+ {id:'F',t:'Existing & planned public electrification',f:[
+   {k:'gridKm',l:'Distance to existing national grid',type:'num',u:'km',hint:'Contextual evidence only – does not itself determine eligibility.'},
+   {k:'gridPlan',l:'Confirmed grid extension plan for the area?',type:'sel',o:YNU},
+   {k:'gridPlanDetail',l:'Grid extension details / timeframe',type:'ta',opt:true,wide:true},
+   {k:'otherPublic',l:'Other publicly financed electrification in service area?',type:'sel',o:YNU},
+   {k:'otherPublicDetail',l:'Details of other public electrification',type:'ta',opt:true,wide:true},
+ ]},
+ {id:'G',t:'Government approvals & confirmations',f:[
+   {k:'govAuthority',l:'Authority consulted',type:'sel',o:['Ministry of Electricity','GARE','PEC','Local authority / council','Other']},
+   {k:'govStatus',l:'Confirmation / no-objection status',type:'sel',o:['Received','Requested – awaiting reply','Not yet requested','Not required']},
+   {k:'govRef',l:'Reference / date of correspondence',opt:true},
+   {k:'govNotes',l:'Notes',type:'ta',opt:true,wide:true},
+ ]},
+ {id:'H',t:'Existing electricity infrastructure',f:[
+   {k:'infraPresent',l:'Existing electricity infrastructure present?',type:'sel',o:['Yes','No']},
+   {k:'infraType',l:'Type of infrastructure',type:'sel',o:['Distribution network','Generation (powerhouse / gensets)','Generation + distribution','Poles / lines only','Other'],opt:true},
+   {k:'infraCond',l:'Overall condition',type:'sel',o:['Largely intact – network & structures usable','Partially usable – significant repairs','Poor – little usable','None']},
+   {k:'infraDesc',l:'Description & rehabilitation potential',type:'ta',wide:true},
+ ]},
+ {id:'I',t:'Land',f:[
+   {k:'landParcel',l:'Parcel identification / description',type:'ta',wide:true},
+   {k:'landArea',l:'Parcel area',type:'num',u:'m²'},
+   {k:'landDistLoad',l:'Distance to load centre',type:'num',u:'m'},
+   {k:'landOwner',l:'Ownership / use right',type:'sel',o:['Government','Community / waqf','Private – donated','Company-owned (Open Window)','Tribal / customary','Unknown']},
+   {k:'landDocs',l:'Ownership / use-right documentation',type:'sel',o:['Available','Partial','Not available']},
+   {k:'landNoDispute',l:'Council / tribal confirmation of no dispute',type:'sel',o:['Received','Pending','Not available']},
+   {k:'landDisputes',l:'Known disputes or competing claims',type:'ta',opt:true,wide:true},
+ ]},
+ {id:'J',t:'Access & security',f:[
+   {k:'irg',l:'Located in IRG-controlled territory?',type:'sel',o:['Yes','No','Unclear']},
+   {k:'frontKm',l:'Distance to nearest active frontline',type:'num',u:'km'},
+   {k:'incidents',l:'Attacks / incidents on public infrastructure (past 2 years)',type:'sel',o:['None known','1–2 incidents','3 or more','Unknown']},
+   {k:'incidentNotes',l:'Incident details / source',type:'ta',opt:true,wide:true},
+   {k:'routeCond',l:'Access-route condition',type:'sel',o:['Paved road','Gravel / all-weather track','Dirt track (4x4)','Poor / difficult']},
+   {k:'passable',l:'Seasonal passability',type:'sel',o:['Year-round','Seasonal restrictions','Impassable in rainy season']},
+   {k:'secArrange',l:'Local security arrangements',type:'ta',wide:true},
+ ]},
+ {id:'K',t:'Community & institutional conditions',f:[
+   {k:'council',l:'Local council status',type:'sel',o:['Active','Partially active','Not active']},
+   {k:'counterpart',l:'Named local counterpart (name / role)'},
+   {k:'endorse',l:'Community endorsement',type:'sel',o:['Documented','Verbal only','Not yet obtained','Not required at this stage']},
+   {k:'consultDate',l:'Consultation date',type:'date'},
+   {k:'consulted',l:'Stakeholders consulted',type:'ta',wide:true},
+   {k:'consultIssues',l:'Principal issues, concerns or agreements',type:'ta',wide:true},
+   {k:'disputes',l:'Disputes / social-cohesion concerns',type:'ta',opt:true,wide:true},
+ ]},
+ {id:'L',t:'Climate risk & preliminary E&S (non-scored)',f:[
+   {note:'Non-scored information. Used to flag design or due-diligence issues; does not affect eligibility or the weighted score.'},
+   {k:'flood',l:'Flood / waterway exposure',type:'sel',o:['None observed','Seasonal ponding / wadi nearby','Within flood path / history of flooding']},
+   {k:'climate',l:'Other climate hazards (heat, dust, wind, landslide)',type:'ta',opt:true,wide:true},
+   {k:'landUse',l:'Current land use of the site'},
+   {k:'receptors',l:'Sensitive receptors nearby (homes, schools, water sources)',type:'ta',opt:true,wide:true},
+   {k:'displace',l:'Displacement risk',type:'sel',o:['None','Economic – avoidable by siting','Economic – likely','Physical resettlement']},
+   {k:'heritage',l:'Cultural / religious site in or near footprint?',type:'sel',o:YNU},
+   {k:'habitat',l:'Critical habitat / protected area?',type:'sel',o:YNU},
+   {k:'esCat',l:'Preliminary E&S category (Annex F)',type:'sel',o:['Low','Moderate','Substantial','High']},
+   {k:'esFlags',l:'E&S red flags & follow-up',type:'ta',opt:true,wide:true},
+ ]},
+ {id:'M',t:'Supporting evidence',f:[{evidence:true},{photos:true}]},
+ {id:'N',t:'Outstanding information / follow-up',f:[
+   {k:'outstanding',l:'Outstanding information / follow-up required',type:'ta',wide:true,opt:true,hint:'Record any missing evidence here; it must be resolved before final screening.'},
+   {h3:'Stage 1 – field submission & sign-off'},
+   {k:'surveyor',l:'Surveyor name'},
+   {k:'submitDate',l:'Submission date',type:'date'},
+   {k:'submitted',l:'Field data verified and submitted',type:'chk'},
+ ]},
+];
+const ALL_FIELDS=SECTIONS.flatMap(s=>s.f.filter(x=>x.k).map(x=>({...x,sec:s.id})));
+
+/* ================= state ================= */
+let cfg=structuredClone(DEFAULT_CFG), sites=[], cur=null, etab='field', view='sites', map=null, watchId=null, lastFix=null;
+const openSecs=new Set(['A']);
+
+function newSite(){
+  const n=sites.reduce((m,s)=>{const x=parseInt(String(s.f.siteId||'').replace(/\D+/g,''),10);return Number.isFinite(x)&&x>m?x:m},0)+1;
+  let surveyor='';try{surveyor=localStorage.getItem('rsa.surveyor')||''}catch(e){}
+  return {id:uid(),created:Date.now(),updatedAt:Date.now(),
+    f:{siteId:cfg.idPrefix+String(n).padStart(3,'0'),name:'',surveyDate:today(),surveyor},
+    anchors:[],photos:[],links:[],
+    rv:{elig:{},scores:{},s2:{},s3:{}}};
+}
+function ensure(s){s.f=s.f||{};s.anchors=s.anchors||[];s.photos=s.photos||[];s.links=s.links||[];s.rv=s.rv||{};for(const k of ['elig','scores','s2','s3'])s.rv[k]=s.rv[k]||{};return s}
+
+/* ================= scoring ================= */
+function payScore(v){if(v==null)return null;const b=cfg.payBands;if(v<b[0])return 1;if(v<=b[1])return 2;if(v<b[2])return 3;if(v<=b[3])return 4;return 5}
+function avg2(a,b){a=num(a);b=num(b);if(a==null&&b==null)return null;if(a==null)return b;if(b==null)return a;return (a+b)/2}
+function dispScore(r,layout){if(layout==='Several widely separated clusters')return 1;r=num(r);if(r==null)return null;const b=cfg.dispBands;if(r<=b[0])return 5;if(r<=b[1])return 4;if(r<=b[2])return 3;if(r<=b[3])return 2;return 1}
+function anchorScore(x){if(x==null)return null;if(x<=0)return 0;const b=cfg.anchorBands;if(x<=b[0])return 1;if(x<=b[1])return 2;if(x<=b[2])return 3;if(x<=b[3])return 4;return 5}
+function rehabSuggest(c,present){if(present==='No'||c==='None'||(c||'').startsWith('Poor'))return 1;if((c||'').startsWith('Largely intact'))return 5;return null}
+function derive(s){
+  const f=s.f, rv=s.rv;
+  const hhAvg=avg2(f.hhPayMin,f.hhPayMax), comAvg=avg2(f.comPayMin,f.comPayMax);
+  const at=s.anchors.length?s.anchors.reduce((a,x)=>a+(num(x.kwh)||0),0):(f.noAnchor?0:null);
+  const sugg={disp:dispScore(f.radiusKm,f.layout),hhpay:payScore(hhAvg),compay:payScore(comAvg),rehab:rehabSuggest(f.infraCond,f.infraPresent)};
+  const final={},confirmed={};
+  for(const c of CRIT){const v=num(rv.scores[c.k]);confirmed[c.k]=v!=null;final[c.k]=v!=null?v:sugg[c.k]}
+  let wsum=0,acc=0,complete=true;
+  for(const c of CRIT){const w=num(cfg.weights[c.k])||0;if(final[c.k]==null){if(w>0)complete=false;continue}wsum+=w;acc+=w*final[c.k]}
+  const wscore=complete&&wsum>0?acc/wsum:null;
+  const res=ELIG.map(e=>(rv.elig[e.k]||{}).r||'');
+  let elig='Not reviewed';
+  if(res.some(r=>r==='Ineligible'))elig='Ineligible';
+  else if(res.every(r=>r==='Eligible'))elig='Eligible';
+  else if(res.some(r=>r))elig='Pending';
+  const req=ALL_FIELDS.filter(x=>!x.opt);
+  let filled=req.filter(x=>x.type==='chk'?!!f[x.k]:String(f[x.k]??'').trim()!=='').length;
+  const total=req.length+1; if(num(f.lat)!=null&&num(f.lng)!=null)filled++;
+  return {hhAvg,comAvg,anchorTotal:at,anchorRef:anchorScore(at),sugg,final,confirmed,wscore,elig,
+    complete:filled/total,conn:num(f.hhConn),es:f.esCat||'',fieldStatus:f.submitted?'Submitted':'Draft'};
+}
+function rankAll(){
+  const rows=sites.map(s=>({s,d:derive(s)}));
+  const order={'Eligible':0,'Pending':1,'Not reviewed':2,'Ineligible':3};
+  rows.sort((a,b)=>(order[a.d.elig]-order[b.d.elig])||((b.d.wscore??-1)-(a.d.wscore??-1))||String(a.s.f.siteId).localeCompare(String(b.s.f.siteId)));
+  let r=0;for(const x of rows)x.rank=(x.d.elig==='Eligible'&&x.d.wscore!=null)?++r:null;
+  return rows;
+}
+const eligCls=e=>e==='Eligible'?'good':e==='Ineligible'?'bad':e==='Pending'?'mid':'';
+const eligHex=e=>e==='Eligible'?'#15803d':e==='Ineligible'?'#b91c1c':e==='Pending'?'#d97706':'#64748b';
+const scHTML=v=>v==null?'<span class="sc na">–</span>':`<span class="sc s${v}">${v}</span>`;
+const siteLabel=s=>(s.f.siteId?s.f.siteId+' · ':'')+(s.f.name||t('Unnamed site'));
+const placeLabel=s=>[s.f.district,s.f.gov].filter(Boolean).join(LANG==='ar'?'، ':', ');
+const esChip=es=>es?`<span class="chip ${es==='High'||es==='Substantial'?'bad':''}">${et('E&S {0}',tv(es))}</span>`:'';
+
+/* ================= persistence ================= */
+let saveTimer=null,pending=null;
+function scheduleSave(s){pending=s;clearTimeout(saveTimer);$('#saveState').textContent=t('Saving…');saveTimer=setTimeout(flushSave,400)}
+async function flushSave(){clearTimeout(saveTimer);if(!pending)return;const s=pending;pending=null;
+  try{await DB.put('sites',s);$('#saveState').textContent=DB.db?t('Saved'):t('Not saved (no storage)')}catch(e){$('#saveState').textContent=t('Save failed');toast(t('Could not save: {0}',(e&&e.message)||e))}}
+let cfgTimer=null;
+function saveCfg(){clearTimeout(cfgTimer);cfgTimer=setTimeout(()=>DB.put('meta',cfg,'cfg').catch(()=>{}),300)}
+
+/* ================= router ================= */
+function go(h){if(location.hash==='#'+h)route();else location.hash=h}
+async function route(){
+  await flushSave();stopGPS();
+  if(map){map.remove();map=null}
+  const h=decodeURIComponent(location.hash.slice(1))||'sites';
+  const main=$('#main');main.className='';
+  if(h.startsWith('site/')){
+    cur=sites.find(s=>s.id===h.slice(5));
+    if(!cur){location.hash='sites';return}
+    view='edit';renderEditor();
+  }else{
+    cur=null;view=['sites','map','register','settings'].includes(h)?h:'sites';
+    if(view==='sites')renderSites();
+    else if(view==='map')renderMap();
+    else if(view==='register')renderRegister();
+    else renderSettings();
+  }
+  $$('#tabs a').forEach(a=>a.classList.toggle('on',a.dataset.tab===(view==='edit'?'sites':view)));
+  $('#appTitle').textContent=projName();
+}
+
+/* ================= sites list ================= */
+let filterText='',filterElig='';
+function renderSites(){
+  const rows=rankAll();
+  const cnt=k=>rows.filter(r=>r.d.elig===k).length;
+  $('#main').innerHTML=`
+   <div class="stats">
+     <div class="card stat"><b>${rows.length}</b><span>${et('Sites')}</span></div>
+     <div class="card stat"><b style="color:var(--good)">${cnt('Eligible')}</b><span>${et('Eligible')}</span></div>
+     <div class="card stat"><b style="color:var(--mid)">${cnt('Pending')+cnt('Not reviewed')}</b><span>${et('Pending')}</span></div>
+     <div class="card stat"><b style="color:var(--bad)">${cnt('Ineligible')}</b><span>${et('Ineligible')}</span></div>
+   </div>
+   <div class="toolbar">
+     <input type="search" id="q" placeholder="${et('Search site ID, name, district…')}" value="${esc(filterText)}">
+     <select id="fe"><option value="">${et('All statuses')}</option>${['Eligible','Pending','Not reviewed','Ineligible'].map(o=>`<option value="${o}" ${filterElig===o?'selected':''}>${et(o)}</option>`).join('')}</select>
+     <button class="btn primary" data-action="new-site"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>${et('New site')}</button>
+   </div>
+   <div class="sites" id="siteList"></div>`;
+  drawSiteList();
+}
+function drawSiteList(){
+  const el=$('#siteList');if(!el)return;
+  const q=filterText.toLowerCase();
+  const rows=rankAll().filter(({s,d})=>(!filterElig||d.elig===filterElig)&&(!q||[s.f.siteId,s.f.name,s.f.gov,s.f.district,s.f.subdistrict,s.f.villages].join(' ').toLowerCase().includes(q)));
+  if(!sites.length){el.innerHTML=`<div class="card empty" style="grid-column:1/-1"><p><b>${et('No sites yet')}</b></p><p>${t('Tap <b>New site</b> to start a field assessment, or tap a point on the Map to add a candidate site there.')}</p></div>`;return}
+  if(!rows.length){el.innerHTML=`<div class="empty" style="grid-column:1/-1">${et('No sites match.')}</div>`;return}
+  el.innerHTML=rows.map(({s,d,rank})=>`
+    <button class="card site-card" data-action="open" data-id="${s.id}">
+      <div class="badge" style="color:${d.wscore!=null?'var(--text)':'var(--muted)'}">${d.wscore!=null?d.wscore.toFixed(2):'–'}<small>${rank?et('Rank {0}',rank):et('score')}</small></div>
+      <div class="sc-body">
+        <div class="sc-name">${esc(siteLabel(s))}</div>
+        <div class="sc-sub">${esc(placeLabel(s)||t('Location not set'))}</div>
+        <div class="sc-meta">
+          <span class="chip ${eligCls(d.elig)}">${et(d.elig)}</span>
+          <span class="chip ${d.fieldStatus==='Submitted'?'acc':''}">${et(d.fieldStatus)}</span>
+          ${s.photos.length?`<span class="chip">${et('{0} photo(s)',s.photos.length)}</span>`:''}
+          ${esChip(d.es)}
+        </div>
+        <div class="bar" title="${et('Field form completeness')}"><i style="width:${Math.round(d.complete*100)}%"></i></div>
+      </div>
+    </button>`).join('');
+}
+
+/* ================= editor ================= */
+function renderEditor(){
+  const s=cur;
+  $('#main').innerHTML=`
+   <div class="ed-head">
+     <button class="icon-btn" data-action="back" aria-label="${et('Back')}"><svg class="i flip" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+     <div class="ed-title"><b id="edTitle">${esc(siteLabel(s))}</b><span id="edSub">${esc(placeLabel(s))}</span></div>
+     <button class="btn sm" data-action="print-site" title="${et('Print / save as PDF')}"><svg class="i" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg>${et('PDF')}</button>
+     <button class="icon-btn" data-action="del-site" aria-label="${et('Delete site')}" style="color:var(--bad)"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button>
+   </div>
+   <div class="statusbar"><div class="row" id="statusRow"></div></div>
+   <div class="segtabs">
+     <button data-action="etab" data-t="field" class="${etab==='field'?'on':''}">${et('Field form')}</button>
+     <button data-action="etab" data-t="review" class="${etab==='review'?'on':''}">${et('Committee review')}</button>
+   </div>
+   <div id="edBody">${etab==='field'?fieldHTML(s):reviewHTML(s)}</div>`;
+  refreshDerived();
+}
+function optionsHTML(opts,v){return opts.map(o=>`<option value="${esc(o)}" ${o===v?'selected':''}>${esc(tv(o))}</option>`).join('')+(v&&!opts.includes(v)?`<option value="${esc(v)}" selected>${esc(tv(v))}</option>`:'')}
+function inputHTML(x,val){
+  const v=val??'';
+  const id='f_'+x.k;
+  if(x.type==='sel')return `<select id="${id}" data-k="${x.k}"><option value="">—</option>${optionsHTML(x.o,v)}</select>`;
+  if(x.type==='ta')return `<textarea id="${id}" data-k="${x.k}" rows="2">${esc(v)}</textarea>`;
+  if(x.type==='date')return `<input id="${id}" type="date" data-k="${x.k}" value="${esc(v)}">`;
+  if(x.type==='num')return `<div class="unitwrap"><input id="${id}" type="number" inputmode="decimal" step="any" data-k="${x.k}" value="${esc(v)}">${x.u?`<span class="u">${et(x.u)}</span>`:''}</div>`;
+  if(x.type==='chk')return `<label class="row" style="font-weight:600"><input type="checkbox" data-k="${x.k}" ${v?'checked':''} style="width:22px;min-height:22px"> ${et(x.l)}</label>`;
+  return `<input id="${id}" type="text" data-k="${x.k}" value="${esc(v)}">`;
+}
+function secCount(s,sec){
+  const fs=sec.f.filter(x=>x.k&&!x.opt);let n=fs.length,d=fs.filter(x=>x.type==='chk'?!!s.f[x.k]:String(s.f[x.k]??'').trim()!=='').length;
+  if(sec.f.some(x=>x.gps)){n++;if(num(s.f.lat)!=null&&num(s.f.lng)!=null)d++}
+  if(sec.f.some(x=>x.anchors)){n++;if(s.anchors.length||s.f.noAnchor)d++}
+  if(sec.f.some(x=>x.evidence)){n+=EVIDENCE.length;d+=EVIDENCE.filter(e=>s.f['ev_'+e.k]).length}
+  return {n,d};
+}
+function fieldHTML(s){
+  return SECTIONS.map(sec=>{const c=secCount(s,sec);return `
+   <details class="sec" data-sec="${sec.id}" ${openSecs.has(sec.id)?'open':''}>
+     <summary><span class="letter">${sec.id}</span><span class="t">${et(sec.t)}</span><span class="cnt ${c.d>=c.n?'done':''}" id="cnt-${sec.id}">${c.d}/${c.n}</span></summary>
+     <div class="sec-body"><div class="grid2">${sec.f.map(x=>{
+       if(x.note)return `<div class="fld wide"><div class="note">${t(x.note)}</div></div>`;
+       if(x.h3)return `<div class="fld wide"><h3>${et(x.h3)}</h3></div>`;
+       if(x.gps)return `<div class="fld wide">${gpsHTML(s)}</div>`;
+       if(x.anchors)return `<div class="fld wide">${anchorsHTML(s)}</div>`;
+       if(x.evidence)return `<div class="fld wide">${evidenceHTML(s)}</div>`;
+       if(x.photos)return `<div class="fld wide">${photosHTML(s)}</div>`;
+       if(x.type==='chk')return `<div class="fld wide">${inputHTML(x,s.f[x.k])}</div>`;
+       return `<div class="fld ${x.wide?'wide':''}"><label class="f" for="f_${x.k}">${et(x.l)}${x.opt?` <span style="font-weight:400">${et('(optional)')}</span>`:''}</label>${inputHTML(x,s.f[x.k])}${x.hint?`<div class="hint">${et(x.hint)}</div>`:''}</div>`;
+     }).join('')}</div></div>
+   </details>`}).join('')+`<p class="small muted" style="margin-top:14px">${et('Field teams record information and evidence only. Eligibility and scores are determined in the Committee review tab.')}</p>`;
+}
+function gpsHTML(s){
+  const lat=num(s.f.lat),lng=num(s.f.lng);
+  return `<div class="gps">
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn primary sm" data-action="gps" id="gpsBtn"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg><span id="gpsLbl">${watchId!==null?et('Stop GPS'):et('Capture GPS')}</span></button>
+      <span class="small muted" id="gpsInfo">${s.f.acc?et('± {0} m accuracy',s.f.acc):et('Stand at the proposed generation site')}</span>
+      <span class="spacer"></span>
+      ${lat!=null&&lng!=null?`<a class="btn sm" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}">${et('Open in Maps')}</a>`:''}
+    </div>
+    <div class="grid2">
+      <div class="fld"><label class="f" for="f_lat">${et('Latitude')}</label><input id="f_lat" type="number" step="any" inputmode="decimal" data-k="lat" value="${esc(s.f.lat??'')}"></div>
+      <div class="fld"><label class="f" for="f_lng">${et('Longitude')}</label><input id="f_lng" type="number" step="any" inputmode="decimal" data-k="lng" value="${esc(s.f.lng??'')}"></div>
+      <div class="fld"><label class="f" for="f_alt">${et('Elevation')}</label><div class="unitwrap"><input id="f_alt" type="number" step="any" data-k="alt" value="${esc(s.f.alt??'')}"><span class="u">m</span></div></div>
+      <div class="fld"><label class="f" for="f_acc">${et('GPS accuracy')}</label><div class="unitwrap"><input id="f_acc" type="number" step="any" data-k="acc" value="${esc(s.f.acc??'')}"><span class="u">m</span></div></div>
+    </div></div>`;
+}
+function anchorsHTML(s){
+  return `<label class="f">${et('Anchor & productive loads (Annex A)')}</label>
+   <div class="small muted" style="margin-bottom:8px">${et('List each anchor or productive user with an estimated daily consumption, e.g. telecom tower, water pump, grain mill, cold room.')}</div>
+   <div id="anchorList">${s.anchors.map(a=>`<div class="anchor-row">
+      <input placeholder="${et('Description')}" data-anchor="${a.id}" data-ak="desc" value="${esc(a.desc||'')}">
+      <div class="unitwrap"><input type="number" step="any" min="0" inputmode="decimal" placeholder="0" data-anchor="${a.id}" data-ak="kwh" value="${esc(a.kwh??'')}"><span class="u">kWh/d</span></div>
+      <button class="icon-btn" data-action="del-anchor" data-a="${a.id}" aria-label="${et('Remove')}">✕</button></div>`).join('')}</div>
+   <div class="row"><button class="btn sm" data-action="add-anchor">${et('+ Add anchor load')}</button>
+     ${s.anchors.length?'':`<label class="row small"><input type="checkbox" data-k="noAnchor" ${s.f.noAnchor?'checked':''} style="width:20px;min-height:20px"> ${et('No anchor load present')}</label>`}
+     <span class="spacer"></span><span class="small" id="anchorTotal"></span></div>`;
+}
+function evidenceHTML(s){
+  const sid=s.f.siteId||'SiteID';
+  return `<label class="f">${et('Minimum supporting evidence (§1.3)')}</label>
+   <div class="small muted" style="margin-bottom:4px">${et('For each item, photograph the document with the camera, add a photo from the gallery, or paste a Google Drive link.')}</div>
+   ${EVIDENCE.map(e=>`<div class="ev-row">
+     <div><div class="ev-t">${et(e.n)}</div><div class="ev-d">${et(e.d)}</div></div>
+     <select data-k="ev_${e.k}" id="evs_${e.k}"><option value="">${et('Status…')}</option>${optionsHTML(EV_STATUS,s.f['ev_'+e.k]||'')}</select>
+     <input data-k="evref_${e.k}" dir="ltr" placeholder="${esc(sid+'_'+e.ref)}" value="${esc(s.f['evref_'+e.k]||'')}">
+     <div class="ev-att" id="evatt-${e.k}">${evAttHTML(s,e.k)}</div>
+   </div>`).join('')}`;
+}
+const safeUrl=u=>/^https?:\/\/\S+$/i.test(String(u||'').trim())?String(u).trim():'';
+const evPhotos=(s,k)=>s.photos.filter(p=>p.ev===k);
+const generalPhotos=s=>s.photos.filter(p=>!p.ev||p.ev==='photos');
+function evAttHTML(s,k){
+  const ph=k==='photos'?[]:evPhotos(s,k), ln=s.links.filter(l=>l.ev===k);
+  return `${ph.map(p=>`<div class="ev-thumb"><img src="${p.data}" alt="${esc(p.caption||t('Evidence photo'))}" data-action="zoom">
+      <button class="x" data-action="del-photo" data-p="${p.id}" aria-label="${et('Delete photo')}">×</button>
+      <input placeholder="${et('Caption')}" data-pcap="${p.id}" value="${esc(p.caption||'')}"></div>`).join('')}
+    ${ln.map(l=>{const u=safeUrl(l.url);return `<div class="ev-link">
+      <input type="url" inputmode="url" placeholder="https://drive.google.com/…" data-link="${l.id}" value="${esc(l.url||'')}">
+      <a class="btn sm ${u?'':'disabled'}" data-linkopen="${l.id}" target="_blank" rel="noopener" href="${esc(u||'#')}">${et('Open')}</a>
+      <button class="icon-btn" data-action="del-link" data-l="${l.id}" aria-label="${et('Remove link')}">✕</button></div>`}).join('')}
+    <div class="ev-btns">
+      <label class="btn sm filebtn">${et('📷 Camera')}<input type="file" accept="image/*" capture="environment" data-photo="1" data-ev="${k}"></label>
+      <label class="btn sm filebtn">${et('🖼 Gallery')}<input type="file" accept="image/*" multiple data-photo="1" data-ev="${k}"></label>
+      <button class="btn sm" data-action="add-link" data-ev="${k}">${et('🔗 Drive link')}</button>
+      ${k==='photos'?`<span class="small muted" style="align-self:center">${et('{0} site photo(s) – see Photos below',generalPhotos(s).length)}</span>`:''}
+    </div>`;
+}
+function refreshAtt(k){
+  if(!cur)return;
+  const el=$('#evatt-'+k);if(el)el.innerHTML=evAttHTML(cur,k);
+  const g=$('#photoGrid');if(g)g.innerHTML=photoGridHTML(cur);
+  const hasAtt=evPhotos(cur,k).length||cur.links.some(l=>l.ev===k&&safeUrl(l.url));
+  if(hasAtt&&!cur.f['ev_'+k]){cur.f['ev_'+k]='Collected';const sel=$('#evs_'+k);if(sel)sel.value='Collected'}
+}
+function photosHTML(s){
+  return `<h3>${et('Photos')}</h3>
+   <div class="row">
+     <label class="btn primary sm filebtn">${et('📷 Take photo')}<input type="file" accept="image/*" capture="environment" data-photo="1"></label>
+     <label class="btn sm filebtn">${et('Add from gallery')}<input type="file" accept="image/*" multiple data-photo="1"></label>
+     <span class="small muted">${et('Photos are resized and tagged with the last GPS fix.')}</span>
+   </div>
+   <div class="photos" id="photoGrid">${photoGridHTML(s)}</div>`;
+}
+function photoGridHTML(s){
+  return generalPhotos(s).map(p=>`<div class="ph"><img src="${p.data}" alt="${esc(p.caption||t('Site photo'))}" data-action="zoom">
+    <button class="x" data-action="del-photo" data-p="${p.id}" aria-label="${et('Delete photo')}">×</button>
+    <div class="ph-b"><select data-pcat="${p.id}">${optionsHTML(PHOTO_CATS,p.cat)}</select>
+    <input placeholder="${et('Caption')}" data-pcap="${p.id}" value="${esc(p.caption||'')}"></div></div>`).join('');
+}
+function reviewHTML(s){
+  const rv=s.rv, d=derive(s);
+  const evStr=e=>e.ev(s).filter(([,v])=>v!==''&&v!=null).map(([k,v])=>`${et(k)}: <b>${esc(v)}</b>`).join(' · ')||`<i>${et('No field data yet')}</i>`;
+  return `
+  <div class="note">${t('Complete after reviewing the field assessment and supporting evidence. A site must be <b>Eligible</b> on all five requirements before its weighted score counts for ranking.')}</div>
+  <details class="sec" open><summary><span class="letter">1</span><span class="t">${et('Eligibility screening (§2.3)')}</span></summary><div class="sec-body">
+   ${ELIG.map(e=>{const r=(rv.elig[e.k]||{}).r||'';return `<div class="rv-row">
+     <div><b>${et(e.n)}</b><div class="ev">${et(e.req)}</div><div class="ev" style="margin-top:5px">${evStr(e)}</div></div>
+     <select class="result-sel ${r}" data-rv="elig.${e.k}.r"><option value="">${et('— Result —')}</option>${optionsHTML(['Eligible','Ineligible','Pending'],r)}</select>
+     <textarea rows="2" placeholder="${et('Comments / basis')}" data-rv="elig.${e.k}.c">${esc((rv.elig[e.k]||{}).c||'')}</textarea></div>`}).join('')}
+   <div class="row" style="margin-top:12px"><b>${et('Overall eligibility:')}</b> <span id="overallChip"></span></div>
+  </div></details>
+
+  <details class="sec" open><summary><span class="letter">2</span><span class="t">${et('Prioritization (§2.4)')}</span></summary><div class="sec-body">
+   <div class="small muted" style="margin-bottom:6px">${et('Scores are suggested from field data using the Annex bands. Select a value to confirm or override it.')}</div>
+   ${CRIT.map(c=>{const v=rv.scores[c.k]??'';return `<div class="score-row">
+      <div><b>${et(c.n)}</b> <span class="small muted">· ${et('Annex {0}',c.annex)} · ${et('weight {0}%',cfg.weights[c.k])}</span><div class="sugg" id="sg-${c.k}"></div></div>
+      <select data-rv="scores.${c.k}"><option value="">${et('Use suggested')}</option>${[1,2,3,4,5].map(n=>`<option value="${n}" ${String(v)===String(n)?'selected':''}>${n}</option>`).join('')}</select></div>`}).join('')}
+   <div class="score-row"><div><b>${et('Anchor-load reference score')}</b> <span class="small muted">· ${et('Annex {0}','A')} · ${et('not weighted')}</span><div class="sugg" id="sg-anchor"></div></div><div id="anchorRef" style="text-align:end"></div></div>
+   <div class="score-row"><div><b>${et('Estimated potential household connections')}</b> <span class="small muted">· ${et('recorded indicator')}</span></div><div style="text-align:end"><b>${d.conn??'—'}</b></div></div>
+   <div class="card pad" style="margin-top:12px;background:var(--surface2);box-shadow:none"><div class="row"><div class="bigscore"><b id="wscore">–</b><span class="muted">${et('/ 5 weighted score')}</span></div><span class="spacer"></span><span id="wnote" class="small muted"></span></div></div>
+  </div></details>
+
+  <details class="sec" open><summary><span class="letter">3</span><span class="t">${et('Review sign-off')}</span></summary><div class="sec-body"><div class="grid2">
+   <div class="fld wide"><label class="f">${et('Key risks / issues requiring follow-up')}</label><textarea data-rv="risks" rows="3">${esc(rv.risks||'')}</textarea></div>
+   <div class="fld"><label class="f">${et('Reviewer name')}</label><input data-rv="reviewer" value="${esc(rv.reviewer||'')}"></div>
+   <div class="fld"><label class="f">${et('Review date')}</label><input type="date" data-rv="rdate" value="${esc(rv.rdate||'')}"></div>
+   <div class="fld wide"><h3>${et('Stage 2 – committee sign-off')}</h3></div>
+   <div class="fld"><label class="f">${et('Committee reviewer')}</label><input data-rv="s2.reviewer" value="${esc(rv.s2.reviewer||'')}"></div>
+   <div class="fld"><label class="f">${et('Date')}</label><input type="date" data-rv="s2.date" value="${esc(rv.s2.date||'')}"></div>
+   <div class="fld"><label class="f">${et('Scoring inputs')}</label><textarea data-rv="s2.inputs" rows="2">${esc(rv.s2.inputs||'')}</textarea></div>
+   <div class="fld"><label class="f">${et('Outstanding issues')}</label><textarea data-rv="s2.outstanding" rows="2">${esc(rv.s2.outstanding||'')}</textarea></div>
+   <div class="fld wide"><label class="row" style="font-weight:600"><input type="checkbox" data-rv="s2.confirmed" ${rv.s2.confirmed?'checked':''} style="width:22px;min-height:22px"> ${et('Eligibility determination confirmed')}</label></div>
+   <div class="fld wide"><h3>${et('Stage 3 – assessment model')}</h3></div>
+   <div class="fld"><label class="f">${et('Entered into site register by')}</label><input data-rv="s3.by" value="${esc(rv.s3.by||'')}"></div>
+   <div class="fld"><label class="f">${et('Date')}</label><input type="date" data-rv="s3.date" value="${esc(rv.s3.date||'')}"></div>
+   <div class="fld"><label class="f">${et('Reference')}</label><input data-rv="s3.ref" value="${esc(rv.s3.ref||'')}"></div>
+   <div class="fld"><label class="f">${et('Final assessment result')}</label><input data-rv="s3.final" value="${esc(rv.s3.final||'')}"></div>
+  </div></div></details>`;
+}
+function suggText(k,d,s){
+  const v=d.sugg[k];
+  const basis={disp:s.f.layout==='Several widely separated clusters'?t('several widely separated clusters'):(num(s.f.radiusKm)!=null?t('radius {0} km',fmt(num(s.f.radiusKm))):t('no radius recorded (Section B)')),
+    hhpay:d.hhAvg!=null?t('avg {0} USD/kWh',fmt(d.hhAvg,3)):t('no household payment data (Section D)'),
+    compay:d.comAvg!=null?t('avg {0} USD/kWh',fmt(d.comAvg,3)):t('no commercial payment data (Section D)'),
+    rehab:s.f.infraCond?t('condition: {0}',tv(s.f.infraCond))+(v==null?t(' – intermediate scores need technical judgement'):''):t('no infrastructure data (Section H)')}[k];
+  return t('Suggested: {0} ({1})',v==null?'—':'<b>'+v+'</b>',esc(basis))+(d.confirmed[k]?` · <b style="color:var(--accent)">${et('committee value used')}</b>`:'');
+}
+function refreshDerived(){
+  if(!cur)return;const s=cur,d=derive(s);
+  const sr=$('#statusRow');
+  if(sr)sr.innerHTML=`<span class="chip ${eligCls(d.elig)}">${et(d.elig)}</span><span class="chip ${d.fieldStatus==='Submitted'?'acc':''}">${et('Field: {0}',t(d.fieldStatus))}</span>
+    <span class="chip">${et('{0}% complete',Math.round(d.complete*100))}</span>
+    <span class="chip ${d.wscore!=null?'acc':''}">${et('Score {0}',d.wscore!=null?d.wscore.toFixed(2)+' / 5':'–')}</span>
+    ${esChip(d.es)}`;
+  const at=$('#anchorTotal');if(at)at.innerHTML=d.anchorTotal!=null?t('Total <b>{0} kWh/day</b> → reference score <b>{1}</b>',fmt(d.anchorTotal,1),d.anchorRef):'';
+  for(const sec of SECTIONS){const el=$('#cnt-'+sec.id);if(el){const c=secCount(s,sec);el.textContent=c.d+'/'+c.n;el.classList.toggle('done',c.d>=c.n)}}
+  for(const c of CRIT){const el=$('#sg-'+c.k);if(el)el.innerHTML=suggText(c.k,d,s)}
+  const sa=$('#sg-anchor');if(sa)sa.textContent=d.anchorTotal!=null?t('{0} kWh/day of anchor load',fmt(d.anchorTotal,1)):t('No anchor loads recorded (Section C)');
+  const ar=$('#anchorRef');if(ar)ar.innerHTML=d.anchorRef!=null?`<span class="sc s${d.anchorRef}">${d.anchorRef}</span>`:'—';
+  const oc=$('#overallChip');if(oc)oc.innerHTML=`<span class="chip ${eligCls(d.elig)}">${et(d.elig)}</span>`;
+  const ws=$('#wscore');if(ws)ws.textContent=d.wscore!=null?d.wscore.toFixed(2):'–';
+  const wn=$('#wnote');if(wn)wn.textContent=d.wscore==null?t('Needs all four criteria scored'):(d.elig==='Eligible'?t('Counts toward ranking'):t('Provisional – ranked only once Eligible'));
+  $$('.result-sel').forEach(el=>{el.className='result-sel '+el.value});
+  const ti=$('#edTitle');if(ti)ti.textContent=siteLabel(s);
+  const st=$('#edSub');if(st)st.textContent=placeLabel(s);
+}
+function touched(){cur.updatedAt=Date.now();scheduleSave(cur);refreshDerived()}
+
+/* ================= GPS ================= */
+function setGpsLabel(){const l=$('#gpsLbl');if(l)l.textContent=watchId!==null?t('Stop GPS'):t('Capture GPS')}
+function startGPS(){
+  if(!navigator.geolocation){toast(t('GPS is not available on this device'));return}
+  if(watchId!==null){stopGPS();return}
+  let best=null;const t0=Date.now();
+  watchId=navigator.geolocation.watchPosition(p=>{
+    const c=p.coords;
+    if(!best||c.accuracy<best.accuracy){
+      best=c;lastFix={lat:c.latitude,lng:c.longitude,acc:c.accuracy,t:Date.now()};
+      if(cur){cur.f.lat=c.latitude.toFixed(6);cur.f.lng=c.longitude.toFixed(6);cur.f.acc=Math.round(c.accuracy);if(c.altitude!=null)cur.f.alt=Math.round(c.altitude);
+        for(const k of ['lat','lng','acc','alt']){const el=$('#f_'+k);if(el)el.value=cur.f[k]??''}
+        touched()}
+    }
+    const gi=$('#gpsInfo');if(gi)gi.textContent=t('± {0} m – improving…',Math.round(best.accuracy));
+    if(best.accuracy<=5||Date.now()-t0>30000)stopGPS();
+  },err=>{toast(t('GPS: {0}',err.message));stopGPS()},{enableHighAccuracy:true,maximumAge:0,timeout:30000});
+  setGpsLabel();
+  setTimeout(()=>{if(watchId!==null&&Date.now()-t0>=30000)stopGPS()},31000);
+}
+function stopGPS(){
+  if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null}
+  setGpsLabel();
+  const gi=$('#gpsInfo');if(gi&&cur&&cur.f.acc)gi.textContent=t('± {0} m accuracy',cur.f.acc);
+}
+
+/* ================= photos ================= */
+function compress(file,max=1400,q=.72){return new Promise((res,rej)=>{const url=URL.createObjectURL(file);const img=new Image();
+  img.onload=()=>{let w=img.naturalWidth,h=img.naturalHeight;const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',q))};
+  img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error(t('Could not read image')))};img.src=url})}
+async function addPhotos(files,ev){
+  if(!cur)return;const s=cur;
+  const evd=EVIDENCE.find(e=>e.k===ev), isDoc=evd&&ev!=='photos';
+  for(const f of files){try{const data=await compress(f,isDoc?1800:1400,isDoc?.8:.72);
+    const fix=lastFix&&Date.now()-lastFix.t<10*60*1000?lastFix:null;
+    s.photos.push({id:uid(),data,caption:'',cat:isDoc?evd.n:'Site / location',ev:ev||null,t:Date.now(),lat:fix?fix.lat:null,lng:fix?fix.lng:null})}catch(e){toast(e.message)}}
+  if(cur===s){if(ev)refreshAtt(ev);else{const g=$('#photoGrid');if(g)g.innerHTML=photoGridHTML(s);refreshAtt('photos')}touched()}
+}
+
+/* ================= map ================= */
+function renderMap(){
+  const main=$('#main');main.className='full';
+  if(!window.L){main.innerHTML=`<div class="map-msg"><p><b>${et('The map could not load.')}</b></p><p>${et('The map library and tiles need an internet connection. Site data and forms still work offline.')}</p></div>`;return}
+  main.innerHTML='<div id="map" dir="ltr"></div>';
+  map=L.map('map',{zoomControl:true});
+  const osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+  const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery © Esri'});
+  sat.addTo(map);
+  L.control.layers({[t('Satellite')]:sat,[t('Street map')]:osm},null,{position:'topright'}).addTo(map);
+  const dir=LANG==='ar'?'rtl':'ltr';
+  const pts=[];
+  for(const {s,d,rank} of rankAll()){
+    const lat=num(s.f.lat),lng=num(s.f.lng);if(lat==null||lng==null)continue;
+    pts.push([lat,lng]);
+    L.circleMarker([lat,lng],{radius:10,color:'#fff',weight:2,fillColor:eligHex(d.elig),fillOpacity:.95}).addTo(map)
+     .bindPopup(`<div dir="${dir}"><b>${esc(siteLabel(s))}</b><br>${esc(placeLabel(s))}<br>${et('Status')}: <b>${et(d.elig)}</b>${d.wscore!=null?`<br>${et('Score')}: <b>${d.wscore.toFixed(2)}</b> / 5${rank?' · '+et('rank {0}',rank):''}`:''}<br><button class="btn sm" style="margin-top:6px" data-action="open" data-id="${s.id}">${et('Open site')}</button></div>`);
+  }
+  if(pts.length)map.fitBounds(pts,{padding:[40,40],maxZoom:14});else map.setView([15.5,47.5],6);
+  const leg=L.control({position:'bottomleft'});
+  leg.onAdd=()=>{const el=L.DomUtil.create('div','legend');el.dir=dir;el.innerHTML=['Eligible','Pending','Not reviewed','Ineligible'].map(e=>`<div><span class="dot" style="background:${eligHex(e)}"></span> ${et(e)}</div>`).join('')+`<div class="muted">${et('Tap map to add a site')}</div>`;return el};
+  leg.addTo(map);
+  const loc=L.control({position:'topleft'});
+  loc.onAdd=()=>{const b=L.DomUtil.create('button','btn sm');b.textContent=t('◎ My location');b.style.marginTop='6px';
+    L.DomEvent.on(b,'click',e=>{L.DomEvent.stop(e);if(!navigator.geolocation)return toast(t('GPS not available'));
+      navigator.geolocation.getCurrentPosition(p=>{if(!map)return;const ll=[p.coords.latitude,p.coords.longitude];lastFix={lat:ll[0],lng:ll[1],acc:p.coords.accuracy,t:Date.now()};
+        L.circle(ll,{radius:p.coords.accuracy,color:'#2563eb',weight:1}).addTo(map);L.circleMarker(ll,{radius:6,color:'#fff',weight:2,fillColor:'#2563eb',fillOpacity:1}).addTo(map);map.setView(ll,15)},
+        err=>toast(t('GPS: {0}',err.message)),{enableHighAccuracy:true,timeout:20000})});return b};
+  loc.addTo(map);
+  map.on('click',e=>{L.popup().setLatLng(e.latlng).setContent(`<div dir="${dir}">${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}<br><button class="btn sm primary" style="margin-top:6px" data-action="new-at" data-lat="${e.latlng.lat.toFixed(6)}" data-lng="${e.latlng.lng.toFixed(6)}">${et('+ New site here')}</button></div>`).openOn(map)});
+  setTimeout(()=>map&&map.invalidateSize(),60);
+}
+
+/* ================= register ================= */
+function renderRegister(){
+  const rows=rankAll();
+  const W=cfg.weights;
+  $('#main').innerHTML=`
+   <div class="row" style="margin-bottom:10px"><h2 style="margin:0">${et('Site Register')}</h2><span class="spacer"></span>
+     <button class="btn sm" data-action="csv">${et('Export Excel (CSV)')}</button><button class="btn sm primary" data-action="print-all">${et('Report (PDF)')}</button></div>
+   <p class="small muted">${t('Only <b>Eligible</b> sites with all four criteria scored are ranked. Weights: dispersion {0}%, household payment {1}%, commercial payment {2}%, rehabilitation {3}%.',W.disp,W.hhpay,W.compay,W.rehab)}</p>
+   ${rows.length?`<div class="card tbl-wrap"><table class="t">
+     <thead><tr><th>${et('Rank')}</th><th>${et('Site')}</th><th>${et('Eligibility')}</th><th class="n">${et('Disp.')}</th><th class="n">${et('HH pay')}</th><th class="n">${et('Com. pay')}</th><th class="n">${et('Rehab')}</th><th class="n">${et('Weighted')}</th><th class="n">${et('Anchor ref')}</th><th class="n">${et('HH conn.')}</th><th>${et('E&S')}</th></tr></thead>
+     <tbody>${rows.map(({s,d,rank})=>`<tr style="cursor:pointer;${d.elig==='Ineligible'?'opacity:.6':''}" data-action="open" data-id="${s.id}">
+       <td><b>${rank??'–'}</b></td>
+       <td><b>${esc(s.f.siteId||'')}</b><br><span class="small muted">${esc(s.f.name||t('Unnamed'))}${s.f.district?(LANG==='ar'?'، ':', ')+esc(s.f.district):''}</span></td>
+       <td><span class="chip ${eligCls(d.elig)}">${et(d.elig)}</span></td>
+       ${CRIT.map(c=>`<td class="n">${scHTML(d.final[c.k])}${d.final[c.k]!=null&&!d.confirmed[c.k]?`<sup class="muted" title="${et('Suggested, not yet confirmed')}">*</sup>`:''}</td>`).join('')}
+       <td class="n"><b>${d.wscore!=null?d.wscore.toFixed(2):'–'}</b></td>
+       <td class="n">${d.anchorRef!=null?scHTML(d.anchorRef):'–'}</td>
+       <td class="n">${d.conn??'–'}</td>
+       <td>${esc(tv(d.es)||'–')}</td></tr>`).join('')}</tbody></table></div>
+     <p class="small muted" style="margin-top:8px">${et('* Suggested from field data, not yet confirmed by the committee.')}</p>
+     <h3>${et('Eligibility detail')}</h3>
+     <div class="card tbl-wrap"><table class="t"><thead><tr><th>${et('Site')}</th>${ELIG.map(e=>`<th>${et(e.n)}</th>`).join('')}</tr></thead>
+     <tbody>${rows.map(({s})=>`<tr data-action="open" data-id="${s.id}" style="cursor:pointer"><td><b>${esc(s.f.siteId||'')}</b></td>${ELIG.map(e=>{const r=(s.rv.elig[e.k]||{}).r;return `<td>${r?`<span class="chip ${eligCls(r)}">${et(r)}</span>`:'<span class="muted">–</span>'}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`
+   :`<div class="card empty">${et('No sites yet.')}</div>`}`;
+}
+
+/* ================= settings / data ================= */
+const paySummary=()=>{const b=cfg.payBands;return t('Score 1 &lt; {0} · 2 ≤ {1} · 3 &lt; {2} · 4 ≤ {3} · 5 above.',b[0],b[1],b[2],b[3])};
+function bandProblems(){
+  const msgs=[];
+  for(const [k,n] of [['payBands','Payment bands'],['dispBands','Dispersion bands'],['anchorBands','Anchor-load bands']]){
+    const b=cfg[k];
+    if(b.some(v=>v<0))msgs.push(t('{0}: values cannot be negative.',t(n)));
+    else if(b.some((v,i)=>i&&v<=b[i-1]))msgs.push(t('{0}: each value must be larger than the one before.',t(n)));
+  }
+  if(CRIT.some(c=>(num(cfg.weights[c.k])||0)<0))msgs.push(t('Weights cannot be negative.'));
+  return msgs.length?'⚠ '+msgs.join(' ')+' '+t('Scores will be wrong until this is fixed.'):'';
+}
+function weightTotalText(tw){const ok=Math.abs(tw-100)<.01;return t('Total {0}%',tw)+(ok?'':' '+t("– does not add up to 100%; scores use each criterion's share instead"))}
+function renderSettings(){
+  const W=cfg.weights;const tw=CRIT.reduce((a,c)=>a+(num(W[c.k])||0),0);const ok=Math.abs(tw-100)<.01;
+  $('#main').innerHTML=`
+  <h2>${et('Methodology & data')}</h2>
+  <div class="settings-grid">
+   <div class="card pad">
+     <h3 style="margin-top:0">${et('Project')}</h3>
+     <div class="fld"><label class="f">${et('Language')}</label><select id="langSel"><option value="en" ${LANG==='en'?'selected':''}>English</option><option value="ar" ${LANG==='ar'?'selected':''}>العربية</option></select></div>
+     <div class="fld"><label class="f">${et('Project name')}</label><input data-cfg="projectName" value="${esc(cfg.projectName)}"></div>
+     <div class="grid2">
+       <div class="fld"><label class="f">${et('Country')}</label><input data-cfg="country" value="${esc(cfg.country)}"></div>
+       <div class="fld"><label class="f">${et('Site ID prefix')}</label><input data-cfg="idPrefix" dir="ltr" value="${esc(cfg.idPrefix)}"></div>
+     </div>
+   </div>
+   <div class="card pad">
+     <h3 style="margin-top:0">${et('Weights (§2.4)')}</h3>
+     <div class="wrow head"><span>${et('Criterion')}</span><span>${et('Weight')}</span><span>${et('Share')}</span></div>
+     ${CRIT.map(c=>`<div class="wrow"><span>${et(c.n)}</span><div class="unitwrap"><input type="number" step="1" min="0" data-cfg="weights.${c.k}" data-num="1" value="${esc(W[c.k])}"><span class="u">%</span></div><span class="pct" data-pct="${c.k}">${tw?Math.round((num(W[c.k])||0)/tw*100):0}%</span></div>`).join('')}
+     <div class="small ${ok?'muted':''}" id="wtotal" style="${ok?'':'color:var(--mid)'}">${esc(weightTotalText(tw))}</div>
+   </div>
+   <div class="card pad">
+     <h3 style="margin-top:0">${et('Payment bands – Annex B / C (USD/kWh)')}</h3>
+     <div class="bands">${['1 → 2 at','2 → 3 above','3 → 4 at','4 → 5 above'].map((l,i)=>`<div><label class="f">${et(l)}</label><input type="number" step="0.01" min="0" data-cfg="payBands.${i}" data-num="1" value="${cfg.payBands[i]}"></div>`).join('')}</div>
+     <p class="small muted" style="margin-top:8px" id="paySummary">${paySummary()}</p>
+     <h3>${et('Dispersion bands – Annex D (km)')}</h3>
+     <div class="bands">${['Score 5 up to','Score 4 up to','Score 3 up to','Score 2 up to'].map((l,i)=>`<div><label class="f">${et(l)}</label><input type="number" step="0.5" min="0" data-cfg="dispBands.${i}" data-num="1" value="${cfg.dispBands[i]}"></div>`).join('')}</div>
+     <h3>${et('Anchor-load bands – Annex A (kWh/day)')}</h3>
+     <div class="bands">${['Score 1 up to','Score 2 up to','Score 3 up to','Score 4 up to'].map((l,i)=>`<div><label class="f">${et(l)}</label><input type="number" step="1" min="0" data-cfg="anchorBands.${i}" data-num="1" value="${cfg.anchorBands[i]}"></div>`).join('')}</div>
+     <div class="small" id="bandWarn" style="color:var(--bad);margin-top:8px">${esc(bandProblems())}</div>
+     <div class="row" style="margin-top:12px"><button class="btn sm" data-action="reset-cfg">${et('Reset to RESET initial framework')}</button></div>
+   </div>
+   <div class="card pad">
+     <h3 style="margin-top:0">${et('App on this device')}</h3>
+     <p class="small" id="offlineInfo">${esc(offlineText())}</p>
+     <div class="row"><button class="btn primary sm" data-action="install" id="installBtn" style="${installEvt?'':'display:none'}">${et('Install app')}</button></div>
+     <p class="small muted" id="installHint" style="${installEvt||isStandalone()?'display:none':''}">${et('To install, use the browser menu → Add to Home screen.')}</p>
+   </div>
+   <div class="card pad">
+     <h3 style="margin-top:0">${et('Export & share')}</h3>
+     <p class="small muted">${et("Data is stored on this device only. Use a backup file to move data between phones or merge the team's surveys.")}</p>
+     <div class="row" style="margin-bottom:8px">
+       <button class="btn primary" data-action="print-all">${et('Site Register report (PDF)')}</button>
+       <button class="btn" data-action="csv">${et('Export Excel (CSV)')}</button>
+     </div>
+     <div class="row" style="margin-bottom:8px">
+       <button class="btn" data-action="backup">${et('Download backup (.json)')}</button>
+       <label class="btn filebtn">${et('Import / merge backup')}<input type="file" accept=".json,application/json" data-import="1"></label>
+     </div>
+     <p class="small muted" id="storageInfo"></p>
+     <div class="row"><button class="btn danger sm" data-action="wipe">${et('Delete all data on this device')}</button></div>
+   </div>
+  </div>
+  <p class="small muted" style="margin-top:16px">${et('Built from the RESET Mini-Grid Site Screening and Assessment Tool, Part I (initial framework). Thresholds and weights are initial values, to be reviewed after the first round of field assessments.')}</p>`;
+  if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(e=>{const el=$('#storageInfo');if(el)el.textContent=t('{0} sites · {1} MB used on this device',sites.length,(e.usage/1048576).toFixed(1))+(DB.db?'':t(' · WARNING: storage unavailable, data will be lost on reload'))}).catch(()=>{});
+}
+function refreshWeights(){
+  const W=cfg.weights;const tw=CRIT.reduce((a,c)=>a+(num(W[c.k])||0),0);
+  $$('[data-pct]').forEach(el=>{el.textContent=(tw?Math.round((num(W[el.dataset.pct])||0)/tw*100):0)+'%'});
+  const el=$('#wtotal');if(el){const ok=Math.abs(tw-100)<.01;el.textContent=weightTotalText(tw);el.style.color=ok?'':'var(--mid)'}
+}
+
+/* ================= export ================= */
+const csvCell=v=>{v=v==null?'':String(v);return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function exportCSV(){
+  const rows=rankAll();
+  const fieldCols=ALL_FIELDS.filter(x=>x.k!=='siteId'&&x.k!=='name');
+  const head=[t('Rank'),t('Site ID'),t('Settlement'),t('Latitude'),t('Longitude'),t('GPS accuracy (m)'),t('Elevation (m)'),
+    ...fieldCols.map(x=>`${x.sec}. ${t(x.l)}${x.u?' ('+t(x.u)+')':''}`),
+    t('Anchor loads'),t('Anchor load total (kWh/day)'),t('Anchor-load reference score'),
+    t('HH payment avg (USD/kWh)'),t('Commercial payment avg (USD/kWh)'),
+    ...EVIDENCE.flatMap(e=>[t('Evidence: {0}',t(e.n)),t('Evidence ref: {0}',t(e.n)),t('Evidence photos: {0}',t(e.n)),t('Evidence links: {0}',t(e.n))]),
+    ...ELIG.flatMap(e=>[t('Eligibility: {0}',t(e.n)),t('Comments: {0}',t(e.n))]),t('Overall eligibility'),
+    ...CRIT.flatMap(c=>[t('{0} score',t(c.n)),t('{0} confirmed',t(c.n))]),t('Weighted score (/5)'),
+    t('Key risks'),t('Reviewer'),t('Review date'),t('Stage 2 reviewer'),t('Stage 2 date'),t('Eligibility confirmed'),t('Entered by'),t('Entry date'),t('Reference'),t('Final result'),t('Photos'),t('Last updated')];
+  const yn=b=>b?t('Yes'):t('No');
+  const body=rows.map(({s,d,rank})=>[rank??'',s.f.siteId,s.f.name,s.f.lat,s.f.lng,s.f.acc,s.f.alt,
+    ...fieldCols.map(x=>x.type==='chk'?yn(s.f[x.k]):(x.type==='sel'?tv(s.f[x.k]):s.f[x.k])),
+    s.anchors.map(a=>`${a.desc||'?'} (${a.kwh||0} kWh/d)`).join('; '),d.anchorTotal??'',d.anchorRef??'',
+    d.hhAvg??'',d.comAvg??'',
+    ...EVIDENCE.flatMap(e=>[tv(s.f['ev_'+e.k]),s.f['evref_'+e.k],e.k==='photos'?generalPhotos(s).length:evPhotos(s,e.k).length,s.links.filter(l=>l.ev===e.k&&safeUrl(l.url)).map(l=>l.url).join(' ')]),
+    ...ELIG.flatMap(e=>[tv((s.rv.elig[e.k]||{}).r),(s.rv.elig[e.k]||{}).c]),t(d.elig),
+    ...CRIT.flatMap(c=>[d.final[c.k],d.confirmed[c.k]?t('Committee'):t('Suggested')]),d.wscore!=null?d.wscore.toFixed(2):'',
+    s.rv.risks,s.rv.reviewer,s.rv.rdate,s.rv.s2.reviewer,s.rv.s2.date,yn(s.rv.s2.confirmed),s.rv.s3.by,s.rv.s3.date,s.rv.s3.ref,s.rv.s3.final,s.photos.length,new Date(s.updatedAt).toISOString()]);
+  download('﻿'+[head,...body].map(r=>r.map(csvCell).join(',')).join('\r\n'),'text/csv;charset=utf-8',`${slug(cfg.projectName)}-site-register-${today()}.csv`);
+}
+function backup(){
+  download(JSON.stringify({app:'reset-site-assessment',version:1,exported:new Date().toISOString(),cfg,sites}),'application/json',`${slug(cfg.projectName)}-backup-${today()}.json`);
+}
+async function importFile(file){
+  let data;try{data=JSON.parse(await file.text())}catch(e){toast(t('That file is not a valid backup'));return}
+  if(!data||data.app!=='reset-site-assessment'||!Array.isArray(data.sites)){toast(t('That file is not a RESET site assessment backup'));return}
+  let added=0,updated=0,kept=0;
+  for(const raw of data.sites){if(!raw||!raw.id)continue;const s=ensure(raw);const ex=sites.find(x=>x.id===s.id);
+    if(!ex){sites.push(s);await DB.put('sites',s);added++}
+    else if((s.updatedAt||0)>(ex.updatedAt||0)){Object.assign(ex,s);await DB.put('sites',ex);updated++}else kept++}
+  if(data.cfg&&confirm(t("Also replace this device's weights and scoring bands with those in the backup?"))){cfg={...structuredClone(DEFAULT_CFG),...data.cfg};await DB.put('meta',cfg,'cfg')}
+  toast(t('Imported: {0} new, {1} updated, {2} unchanged',added,updated,kept),4000);route();
+}
+
+/* ================= printable report ================= */
+const val=v=>v==null||v===''?'—':esc(tv(v));
+const locale=()=>LANG==='ar'?'ar-YE-u-nu-latn':'en-GB';
+function siteReportHTML(s,first){
+  const d=derive(s);
+  let h=`<div class="${first?'':'pb'}"><div class="kicker">${et('Site Assessment Form')}</div><h1>${esc(siteLabel(s))}</h1>
+   <p>${esc([s.f.villages,s.f.subdistrict,s.f.district,s.f.gov].filter(Boolean).join(LANG==='ar'?'، ':', '))}</p>
+   <div class="box"><b>${et('Overall eligibility')}:</b> ${et(d.elig)} &nbsp;·&nbsp; <b>${et('Weighted score')}:</b> ${d.wscore!=null?d.wscore.toFixed(2)+' / 5':'—'} &nbsp;·&nbsp; <b>${et('Field status')}:</b> ${et(d.fieldStatus)} &nbsp;·&nbsp; <b>${et('Form completeness')}:</b> ${Math.round(d.complete*100)}%</div>`;
+  for(const sec of SECTIONS){
+    h+=`<h3>${sec.id}. ${et(sec.t)}</h3><table>`;
+    for(const x of sec.f){
+      if(x.gps)h+=`<tr><td class="k">${et('GPS coordinates')}</td><td dir="ltr">${val(s.f.lat)}, ${val(s.f.lng)} (± ${val(s.f.acc)} m, ${esc(t('Elevation'))} ${val(s.f.alt)} m)</td></tr>`;
+      else if(x.anchors)h+=`<tr><td class="k">${et('Anchor / productive loads')}</td><td>${s.anchors.length?s.anchors.map(a=>`${esc(a.desc||'?')} – ${esc(a.kwh||0)} kWh/day`).join('<br>')+`<br><b>${et('Total {0} kWh/day → reference score {1}',fmt(d.anchorTotal,1),d.anchorRef)}</b>`:(s.f.noAnchor?et('No anchor load (score 0)'):'—')}</td></tr>`;
+      else if(x.evidence)h+=EVIDENCE.map(e=>{const ln=s.links.filter(l=>l.ev===e.k&&safeUrl(l.url));const np=e.k==='photos'?generalPhotos(s).length:evPhotos(s,e.k).length;
+        return `<tr><td class="k">${et(e.n)}</td><td>${val(s.f['ev_'+e.k])}${s.f['evref_'+e.k]?et(' – ref. {0}',s.f['evref_'+e.k]):''}${np?'<br>'+et('{0} photo(s) attached',np):''}${ln.map(l=>`<br><a dir="ltr" href="${esc(safeUrl(l.url))}">${esc(l.url)}</a>`).join('')}</td></tr>`}).join('');
+      else if(x.k)h+=`<tr><td class="k">${et(x.l)}${x.u?' ('+et(x.u)+')':''}</td><td>${x.type==='chk'?(s.f[x.k]?et('Yes'):et('No')):val(s.f[x.k]).replace(/\n/g,'<br>')}</td></tr>`;
+    }
+    h+='</table>';
+  }
+  const fig=(p,name)=>`<figure><img src="${p.data}" alt=""><figcaption><span dir="ltr">${esc(name)}</span> · ${esc(tv(p.cat||''))}${p.caption?' – '+esc(p.caption):''}${p.lat!=null?` · <span dir="ltr">${(+p.lat).toFixed(5)}, ${(+p.lng).toFixed(5)}</span>`:''}</figcaption></figure>`;
+  const sid=s.f.siteId||'Site';
+  const gp=generalPhotos(s);
+  if(gp.length)h+=`<h3>${et('Site photographs ({0})',gp.length)}</h3><div class="rp-photos">${gp.map((p,i)=>fig(p,`${sid}_Photos_${i+1}`)).join('')}</div>`;
+  for(const e of EVIDENCE){if(e.k==='photos')continue;const ep=evPhotos(s,e.k);
+    if(ep.length)h+=`<h3>${et('Evidence – {0} ({1})',t(e.n),ep.length)}</h3><div class="rp-photos">${ep.map((p,i)=>fig(p,`${sid}_${e.ref}_${i+1}`)).join('')}</div>`}
+  h+=`<h3>${et('Independent technical committee review – eligibility')}</h3><table><tr><th>${et('Requirement')}</th><th>${et('Result')}</th><th>${et('Comments / basis')}</th></tr>
+    ${ELIG.map(e=>`<tr><td>${et(e.n)}</td><td>${val((s.rv.elig[e.k]||{}).r)}</td><td>${val((s.rv.elig[e.k]||{}).c)}</td></tr>`).join('')}
+    <tr><th>${et('Overall eligibility')}</th><th colspan="2">${et(d.elig)}</th></tr></table>
+   <h3>${et('Prioritization')}</h3><table><tr><th>${et('Criterion')}</th><th>${et('Weight')}</th><th>${et('Score')}</th><th>${et('Source')}</th></tr>
+    ${CRIT.map(c=>`<tr><td>${et(c.n)}</td><td>${esc(cfg.weights[c.k])}%</td><td>${d.final[c.k]??'—'}</td><td>${d.confirmed[c.k]?et('Committee'):et('Suggested from field data')}</td></tr>`).join('')}
+    <tr><td>${et('Anchor-load reference score (not weighted)')}</td><td>–</td><td>${d.anchorRef??'—'}</td><td>${et('Annex {0}','A')}</td></tr>
+    <tr><td>${et('Potential household connections')}</td><td>–</td><td>${d.conn??'—'}</td><td>${et('Recorded indicator')}</td></tr>
+    <tr><th>${et('Weighted score')}</th><th></th><th colspan="2">${d.wscore!=null?d.wscore.toFixed(2)+' / 5':'—'}</th></tr></table>
+   <table><tr><td class="k">${et('Key risks / issues requiring follow-up')}</td><td>${val(s.rv.risks)}</td></tr>
+    <tr><td class="k">${et('Reviewer / date')}</td><td>${val(s.rv.reviewer)} · ${val(s.rv.rdate)}</td></tr>
+    <tr><td class="k">${et('Stage 2 – committee reviewer / date')}</td><td>${val(s.rv.s2.reviewer)} · ${val(s.rv.s2.date)}</td></tr>
+    <tr><td class="k">${et('Scoring inputs / outstanding issues')}</td><td>${val(s.rv.s2.inputs)}<br>${val(s.rv.s2.outstanding)}</td></tr>
+    <tr><td class="k">${et('Eligibility determination confirmed')}</td><td>${s.rv.s2.confirmed?et('Yes'):et('No')}</td></tr>
+    <tr><td class="k">${et('Stage 3 – entered by / date / reference')}</td><td>${val(s.rv.s3.by)} · ${val(s.rv.s3.date)} · ${val(s.rv.s3.ref)}</td></tr>
+    <tr><td class="k">${et('Final assessment result')}</td><td>${val(s.rv.s3.final)}</td></tr>
+    <tr><td class="k">${et('Surveyor signature')}</td><td style="height:34px"></td></tr><tr><td class="k">${et('Reviewer signature')}</td><td style="height:34px"></td></tr></table></div>`;
+  return h;
+}
+async function printHTML(h){
+  await flushSave();
+  const el=$('#report');el.innerHTML=h;
+  await Promise.all($$('img',el).map(i=>i.decode?i.decode().catch(()=>{}):null));
+  window.print();
+}
+function printSite(){if(cur)printHTML(siteReportHTML(cur,true))}
+function printAll(){
+  const rows=rankAll();if(!rows.length){toast(t('No sites to report'));return}
+  const full=confirm(t('Include the full Site Assessment Form for every site?\n\nOK = full report · Cancel = register summary only'));
+  const cnt=k=>rows.filter(r=>r.d.elig===k).length;const W=cfg.weights;const P=cfg.payBands,D=cfg.dispBands,A=cfg.anchorBands;
+  let h=`<div class="kicker">${et('Site Register & Screening report · {0}',countryName())}</div><h1>${esc(projName())}</h1>
+   <p>${et('Generated {0} · {1} candidate sites · {2} eligible · {3} pending / not reviewed · {4} ineligible',new Date().toLocaleString(locale()),rows.length,cnt('Eligible'),cnt('Pending')+cnt('Not reviewed'),cnt('Ineligible'))}</p>
+   <h2>${et('1. Ranking of eligible sites')}</h2>
+   <table><tr><th>${et('Rank')}</th><th>${et('Site ID')}</th><th>${et('Settlement')}</th><th>${et('District')}</th><th>${et('Disp.')}</th><th>${et('HH pay')}</th><th>${et('Com. pay')}</th><th>${et('Rehab')}</th><th>${et('Weighted (/5)')}</th><th>${et('Anchor ref')}</th><th>${et('HH conn.')}</th><th>${et('E&S')}</th></tr>
+   ${rows.filter(r=>r.rank).map(({s,d,rank})=>`<tr><td>${rank}</td><td>${esc(s.f.siteId)}</td><td>${esc(s.f.name)}</td><td>${esc(s.f.district)}</td>${CRIT.map(c=>`<td>${d.final[c.k]??'—'}</td>`).join('')}<td><b>${d.wscore.toFixed(2)}</b></td><td>${d.anchorRef??'—'}</td><td>${d.conn??'—'}</td><td>${val(d.es)}</td></tr>`).join('')||`<tr><td colspan="12">${et('No sites are yet eligible with complete scores.')}</td></tr>`}</table>
+   <h2>${et('2. Eligibility screening')}</h2>
+   <table><tr><th>${et('Site ID')}</th><th>${et('Settlement')}</th>${ELIG.map(e=>`<th>${et(e.n)}</th>`).join('')}<th>${et('Overall')}</th></tr>
+   ${rows.map(({s,d})=>`<tr><td>${esc(s.f.siteId)}</td><td>${esc(s.f.name)}</td>${ELIG.map(e=>`<td>${val((s.rv.elig[e.k]||{}).r)}</td>`).join('')}<td><b>${et(d.elig)}</b></td></tr>`).join('')}</table>
+   <h2>${et('3. Method')}</h2>
+   <p>${t('Sites are screened against five minimum eligibility requirements (§2.3). A site is <b>Eligible</b> only when all five are met, <b>Ineligible</b> when any is not met, and <b>Pending</b> where information is insufficient. Eligible sites are compared on four weighted criteria scored 1–5 (§2.4): dispersion {0}%, household payment {1}%, commercial payment {2}%, rehabilitable infrastructure {3}%. The anchor-load score (Annex A) and potential household connections are recorded for reference and are not weighted.',W.disp,W.hhpay,W.compay,W.rehab)}</p>
+   <table><tr><th>${et('Band')}</th><th>${et('Values')}</th></tr>
+    <tr><td>${et('Payment (Annex B/C, USD/kWh, average of min & max)')}</td><td dir="ltr">1: &lt;${P[0]} · 2: ${P[0]}–${P[1]} · 3: &gt;${P[1]} – &lt;${P[2]} · 4: ${P[2]}–${P[3]} · 5: &gt;${P[3]}</td></tr>
+    <tr><td>${et('Dispersion (Annex D, km centre to outer edge)')}</td><td>5: ≤${D[0]} · 4: ≤${D[1]} · 3: ≤${D[2]} · 2: ≤${D[3]} · 1: &gt;${D[3]} ${et('or several widely separated clusters')}</td></tr>
+    <tr><td>${et('Anchor load (Annex A, kWh/day)')}</td><td>0: ${et('none')} · 1: ≤${A[0]} · 2: ≤${A[1]} · 3: ≤${A[2]} · 4: ≤${A[3]} · 5: &gt;${A[3]}</td></tr>
+    <tr><td>${et('Rehabilitable infrastructure (Annex E)')}</td><td>${et('1: weak · 2–4: intermediate, by technical judgement · 5: strong')}</td></tr></table>`;
+  if(full)rows.forEach(({s})=>{h+=siteReportHTML(s,false)});
+  printHTML(h);
+}
+
+/* ================= offline install (service worker) ================= */
+let installEvt=null, swReady=false, swFailed=false;
+const swSupported=()=>'serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1');
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function offlineText(){
+  if(!swSupported())return t('Offline use needs the app to be opened from its https web address.');
+  if(swFailed)return t('This browser could not set up offline use. Open the app in Chrome or Edge.');
+  const base=swReady?t('Ready to work offline. The map only shows areas already viewed online.'):t('Preparing offline use… keep this page open for a moment while online.');
+  return isStandalone()?t('Installed – opens from the home screen.')+' '+base:base;
+}
+function refreshOffline(){
+  const o=$('#offlineInfo');if(o)o.textContent=offlineText();
+  const b=$('#installBtn');if(b)b.style.display=installEvt?'':'none';
+  const h=$('#installHint');if(h)h.style.display=installEvt||isStandalone()?'none':'';
+}
+if(swSupported()){
+  navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{swReady=true;refreshOffline()}).catch(()=>{swFailed=true;refreshOffline()});
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;refreshOffline()});
+window.addEventListener('appinstalled',()=>{installEvt=null;refreshOffline()});
+
+/* ================= events ================= */
+document.addEventListener('click',async e=>{
+  const el=e.target.closest('[data-action]');if(!el)return;
+  const a=el.dataset.action;
+  if(a==='lang'){setLang(LANG==='ar'?'en':'ar')}
+  else if(a==='install'){if(installEvt){installEvt.prompt();try{await installEvt.userChoice}catch(_){}installEvt=null;refreshOffline()}}
+  else if(a==='new-site'||a==='new-at'){const s=newSite();if(a==='new-at'){s.f.lat=el.dataset.lat;s.f.lng=el.dataset.lng;s.f.acc=''}
+    sites.push(s);await DB.put('sites',s);openSecs.clear();openSecs.add('A');etab='field';go('site/'+s.id)}
+  else if(a==='open'){etab='field';go('site/'+el.dataset.id)}
+  else if(a==='back'){history.length>1?history.back():go('sites')}
+  else if(a==='del-site'){if(!cur)return;if(!confirm(t('Delete {0} and its photos from this device? This cannot be undone.',siteLabel(cur))))return;
+    const id=cur.id;pending=null;await DB.del('sites',id);sites=sites.filter(s=>s.id!==id);cur=null;toast(t('Site deleted'));go('sites')}
+  else if(a==='etab'){etab=el.dataset.t;renderEditor()}
+  else if(a==='gps')startGPS();
+  else if(a==='add-anchor'){cur.anchors.push({id:uid(),desc:'',kwh:''});cur.f.noAnchor=false;rerenderSection('C');touched();const ins=$$('#anchorList input[data-ak="desc"]');if(ins.length)ins[ins.length-1].focus()}
+  else if(a==='del-anchor'){cur.anchors=cur.anchors.filter(x=>x.id!==el.dataset.a);rerenderSection('C');touched()}
+  else if(a==='del-photo'){if(!confirm(t('Delete this photo?')))return;const p=cur.photos.find(x=>x.id===el.dataset.p);cur.photos=cur.photos.filter(x=>x.id!==el.dataset.p);
+    refreshAtt(p&&p.ev&&p.ev!=='photos'?p.ev:'photos');touched()}
+  else if(a==='add-link'){const ev=el.dataset.ev;const l={id:uid(),ev,url:''};cur.links.push(l);refreshAtt(ev);touched();const inp=$(`[data-link="${l.id}"]`);if(inp)inp.focus()}
+  else if(a==='del-link'){const l=cur.links.find(x=>x.id===el.dataset.l);cur.links=cur.links.filter(x=>x.id!==el.dataset.l);if(l)refreshAtt(l.ev);touched()}
+  else if(a==='zoom'){const lb=$('#lightbox');lb.querySelector('img').src=el.src;lb.style.display='flex'}
+  else if(a==='print-site')printSite();
+  else if(a==='print-all')printAll();
+  else if(a==='csv')exportCSV();
+  else if(a==='backup')backup();
+  else if(a==='reset-cfg'){if(!confirm(t('Reset weights and scoring bands to the RESET initial framework?')))return;const keep={projectName:cfg.projectName,country:cfg.country,idPrefix:cfg.idPrefix};cfg={...structuredClone(DEFAULT_CFG),...keep};await DB.put('meta',cfg,'cfg');renderSettings()}
+  else if(a==='wipe'){if(!confirm(t('Permanently delete ALL sites and photos on this device? Download a backup first if you need the data. This cannot be undone.')))return;
+    if(prompt(t('Type DELETE to confirm'))!=='DELETE')return;await DB.clear('sites');sites=[];toast(t('All data deleted'));go('sites')}
+});
+$('#lightbox').addEventListener('click',()=>{$('#lightbox').style.display='none'});
+function rerenderSection(id){
+  const det=$(`details[data-sec="${id}"]`);if(!det)return;
+  const tmp=document.createElement('div');
+  openSecs.add(id);tmp.innerHTML=fieldHTML(cur);const fresh=tmp.querySelector(`details[data-sec="${id}"]`);det.replaceWith(fresh);
+}
+document.addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('details[data-sec]')){d.open?openSecs.add(d.dataset.sec):openSecs.delete(d.dataset.sec)}},true);
+function onField(e){
+  const el=e.target;
+  if(el.type==='file'){
+    if(e.type!=='change')return;
+    if(el.dataset.photo){addPhotos([...el.files],el.dataset.ev||null);el.value=''}
+    else if(el.dataset.import){if(el.files[0])importFile(el.files[0]);el.value=''}
+    return;
+  }
+  if(el.id==='langSel'){if(e.type==='change')setLang(el.value);return}
+  if(el.id==='q'){filterText=el.value;drawSiteList();return}
+  if(el.id==='fe'){filterElig=el.value;drawSiteList();return}
+  if(el.dataset.cfg!==undefined){let v=el.value;if(el.dataset.num){v=num(v);if(v==null)return}setPath(cfg,el.dataset.cfg,v);saveCfg();
+    if(el.dataset.cfg.startsWith('weights'))refreshWeights();
+    const bw=$('#bandWarn');if(bw)bw.textContent=bandProblems();
+    const ps=$('#paySummary');if(ps)ps.innerHTML=paySummary();
+    if(el.dataset.cfg==='projectName')$('#appTitle').textContent=projName();return}
+  if(!cur)return;
+  if(el.dataset.k!==undefined){
+    const k=el.dataset.k;cur.f[k]=el.type==='checkbox'?el.checked:el.value;
+    if(k==='surveyor'){try{localStorage.setItem('rsa.surveyor',el.value)}catch(_){}}
+    touched();
+  }else if(el.dataset.ak){const a=cur.anchors.find(x=>x.id===el.dataset.anchor);if(a){a[el.dataset.ak]=el.value;touched()}}
+  else if(el.dataset.rv){setPath(cur.rv,el.dataset.rv,el.type==='checkbox'?el.checked:el.value);touched()}
+  else if(el.dataset.link){const l=cur.links.find(x=>x.id===el.dataset.link);if(l){l.url=el.value.trim();const u=safeUrl(l.url);const o=$(`[data-linkopen="${l.id}"]`);if(o){o.href=u||'#';o.classList.toggle('disabled',!u)}
+      if(e.type==='change'&&l.url&&!u)toast(t('Links must start with https://'));
+      if(u&&!cur.f['ev_'+l.ev]){cur.f['ev_'+l.ev]='Collected';const sel=$('#evs_'+l.ev);if(sel)sel.value='Collected'}touched()}}
+  else if(el.dataset.pcap){const p=cur.photos.find(x=>x.id===el.dataset.pcap);if(p){p.caption=el.value;touched()}}
+  else if(el.dataset.pcat){const p=cur.photos.find(x=>x.id===el.dataset.pcat);if(p){p.cat=el.value;touched()}}
+}
+document.addEventListener('input',onField);
+document.addEventListener('change',e=>{const el=e.target;if(el.type==='file'||el.tagName==='SELECT'||el.type==='checkbox'||el.type==='date'||el.dataset.link)onField(e)});
+window.addEventListener('hashchange',route);
+// stop the mouse wheel from silently changing a focused number field
+document.addEventListener('wheel',e=>{const a=document.activeElement;if(a&&a.type==='number'&&a.contains(e.target))a.blur()},{passive:true});
+window.addEventListener('pagehide',()=>{flushSave()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave()});
+
+/* ================= boot ================= */
+(async function(){
+  applyLang();
+  const ok=await DB.open();
+  if(!ok)toast(t('Device storage is unavailable – data will not be kept after closing.'),6000);
+  try{const c=await DB.get('meta','cfg');if(c)cfg={...structuredClone(DEFAULT_CFG),...c,weights:{...DEFAULT_CFG.weights,...(c.weights||{})}}}catch(e){}
+  try{sites=(await DB.all('sites')).map(ensure)}catch(e){sites=[]}
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+  route();
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" async onload="if(view==='map'&&!map)renderMap()"></script>
+</body>
+</html>
